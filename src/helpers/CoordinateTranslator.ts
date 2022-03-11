@@ -2,7 +2,6 @@ import LineToDraw from '../models/LineToDraw';
 import CatanCoordinate from '../models/CatanCoordinate';
 
 export default abstract class CoordinateTranslator {
-    private static myProp = "Hello";
     private static xCoordinateMultiplier = 85;
     private static yCoordinateMultiplier = 32;
     private static leftSideMargin = 40;

@@ -11,8 +11,8 @@ import './App.css';
 function App() {
   return (
     <div>
-      <h3>CatanBoardGame</h3>
       <CatanGameBoard />
+      <h3>CatanBoard</h3>
     </div>
   );
 }
