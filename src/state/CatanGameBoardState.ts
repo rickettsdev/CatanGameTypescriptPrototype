@@ -1,16 +1,8 @@
 import React from 'react';
 
 import LineToDraw from '../models/LineToDraw'
+import {CatanGameColor} from '../models/CatanGameColor'
 
-enum CatanGameColor {
-	RED,
-	BLUE,
-	YELLOW,
-	WHITE,
-}
-
-type CatanGameBoardState = {
+export type CatanGameBoardState = {
 	roadsToDraw: Map<LineToDraw, CatanGameColor>
 }
-
-export default CatanGameBoardState
