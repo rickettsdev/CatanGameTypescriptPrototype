@@ -9,6 +9,7 @@ import QuoteApp from './components/QuoteApp'
 
 import LineToDraw from './models/LineToDraw';
 import LineProperties from './models/LineProperties'
+import CatanCoordinate from './models/CatanCoordinate'
 import {CatanGameColor} from './models/CatanGameColor'
 
 
@@ -60,7 +61,7 @@ function CatanGameBoard() {
         ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
         ctx!.lineTo(uiCoordinates.x1, uiCoordinates.y1);
         ctx!.strokeStyle = color;
-        ctx!.lineWidth = width;
+        ctx!.lineWidth = width; 
         ctx!.stroke();
       }
       
@@ -89,15 +90,25 @@ function CatanGameBoard() {
         height={375}
         onClick={(e) => {
           if (canvasRef.current) {
+
+            let xCoordinate = e.clientX
+            let yCoordinate = e.clientY
+
+            let closestRoad = CoordinateTranslator.closestRoad(
+                { x: xCoordinate, y: yCoordinate } as CatanCoordinate,
+                30 /* px */
+            )
+
             canvasCtxRef.current = canvasRef.current.getContext('2d');
             let ctx = canvasCtxRef.current; // Assigning to a temp variable
+
             ctx!.beginPath(); // Note the Non Null Assertion
-            ctx!.moveTo(0, 0);
-            ctx!.lineTo(250, 250);
+            ctx!.moveTo(closestRoad.x, closestRoad.y);
+            ctx!.lineTo(closestRoad.x1, closestRoad.y1);
             ctx!.strokeStyle = "red";
             ctx!.lineWidth = 3;
             ctx!.stroke();
-            console.log("here")
+
           }
           console.log(`click on x: ${e.clientX}, y: ${e.clientY}`);
         }}
