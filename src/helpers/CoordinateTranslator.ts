@@ -58,6 +58,12 @@ export default abstract class CoordinateTranslator {
     				|| (rd.y1 === closestCoordinate.y && rd.x1 === closestCoordinate.x)
     	)
 
+    	let secondClosestPoint = CoordinateTranslator.findSecondClosestPoint(
+    		closestRoadSegments,
+    		closestCoordinate,
+    		uiCoordinate
+    	)
+
     	let firstCandidateCloseRoad = closestRoadSegments[0]
     	let secondCandidateCloseRoad = closestRoadSegments[1]
 
@@ -84,14 +90,54 @@ export default abstract class CoordinateTranslator {
 
 
     	let closestRoad = Math.abs(
-    		closestCoordinateUIMapped.x - uiCoordinateFirstCandidate.x
+    		uiCoordinate.x - uiCoordinateFirstCandidate.x
     	) > 
     	Math.abs(
-    		closestCoordinateUIMapped.x - uiCoordinateSecondCandidate.x
+    		uiCoordinate.x - uiCoordinateSecondCandidate.x
     	) ? {x: closestCoordinateUIMapped.x, y: closestCoordinateUIMapped.y, x1: uiCoordinateFirstCandidate.x, y1: uiCoordinateFirstCandidate.y} as LineToDraw
     	: {x: closestCoordinateUIMapped.x, y: closestCoordinateUIMapped.y, x1: uiCoordinateSecondCandidate.x, y1: uiCoordinateSecondCandidate.y} as LineToDraw
 
+    	console.log(`Closest Road: ${JSON.stringify(closestRoad)}`)
+
     	return closestRoad
+    }
+
+    // takes in list of roads which share coordinate ${connectedRoadSharedCoordinate}
+    private static findSecondClosestPoint(
+    	connectedRoads: Array<LineToDraw>,
+    	sharedCoordinate: CatanCoordinate,
+    	touchEventCoord: CatanCoordinate
+    ) {
+
+    	// First, identify coordinates that are not the closest point
+    	var listOfCoordinates = new Array<CatanCoordinate>()
+    	console.log(`Shared Coordinate: ${JSON.stringify(sharedCoordinate)}`)
+    	for (var roads of connectedRoads) {
+    		let candidateCoord = (roads.x === sharedCoordinate.x && roads.y === sharedCoordinate.y
+    			? {x: roads.x1, y: roads.y1} : {x: roads.x, y: roads.y}) as CatanCoordinate
+    		listOfCoordinates.push({x: candidateCoord.x, y: candidateCoord.y} as CatanCoordinate)
+
+    		console.log(`Potential closest: ${JSON.stringify(candidateCoord)}`)
+    	}
+
+    	// Second, iterate these coordinates and find the closest to touchEventCoord
+    	var currentLeastDistance = 9001 // Arbitrarily Large
+    	var currentLeastDistanceCoord = {x:0,y:0} as CatanCoordinate
+    	for (var coord of listOfCoordinates) {
+    		let uiCoord = CoordinateTranslator
+    						.mapHexagonPointCoordinate(coord)
+    		let distance = CoordinateTranslator
+    						.distanceBetweenTwoCoordinates(uiCoord, touchEventCoord)
+
+    		console.log(`coord: ${JSON.stringify(coord)} distance: ${distance}`)
+    		if (distance < currentLeastDistance) {
+    			currentLeastDistance = distance
+    			currentLeastDistanceCoord = coord
+    		}
+    	}
+
+    	console.log(`second closest point: ${JSON.stringify(currentLeastDistanceCoord)}`)
+
     }
 
     private static findClosestCoordinate(uiCoordinate: CatanCoordinate): CatanCoordinate {
@@ -139,5 +185,15 @@ export default abstract class CoordinateTranslator {
     			return 1 * CoordinateTranslator.leftSideMargin;
     		}
     	}
+    }
+
+    private static distanceBetweenTwoCoordinates(
+    	firstCoord: CatanCoordinate,
+    	secondCoord: CatanCoordinate
+    ): number {
+    	let ySqrd = Math.pow(secondCoord.y - firstCoord.y, 2)
+    	let xSqrd = Math.pow(secondCoord.x - firstCoord.x, 2)
+
+    	return Math.sqrt(ySqrd + xSqrd)
     }
 }
