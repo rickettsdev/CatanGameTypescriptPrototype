@@ -58,48 +58,15 @@ export default abstract class CoordinateTranslator {
     				|| (rd.y1 === closestCoordinate.y && rd.x1 === closestCoordinate.x)
     	)
 
-    	let secondClosestPoint = CoordinateTranslator.findSecondClosestPoint(
+    	let secondClosestCoordinate = CoordinateTranslator.findSecondClosestPoint(
     		closestRoadSegments,
     		closestCoordinate,
     		uiCoordinate
     	)
 
-    	let firstCandidateCloseRoad = closestRoadSegments[0]
-    	let secondCandidateCloseRoad = closestRoadSegments[1]
+    	let secondClosestCoordinateUIMapped = CoordinateTranslator.mapHexagonPointCoordinate(secondClosestCoordinate)
 
-    	console.log(`First closest road candidate: ${JSON.stringify(firstCandidateCloseRoad)}`)
-    	console.log(`Second closest road candidate: ${JSON.stringify(secondCandidateCloseRoad)}`)
-
-
-    	let firstOtherCoordinateCandidate = 
-    		{x: firstCandidateCloseRoad.x, y: firstCandidateCloseRoad.y} as CatanCoordinate === closestCoordinate ?
-    		 {x: firstCandidateCloseRoad.x1, y: firstCandidateCloseRoad.y1} : {x: firstCandidateCloseRoad.x, y: firstCandidateCloseRoad.y}
-
-    	let secondOtherCoordinateCandidate = 
-    		{x: secondCandidateCloseRoad.x, y: secondCandidateCloseRoad.y} as CatanCoordinate === closestCoordinate ?
-    		 {x: secondCandidateCloseRoad.x1, y: secondCandidateCloseRoad.y1} : {x: secondCandidateCloseRoad.x, y: secondCandidateCloseRoad.y}
-
-    	console.log(`first potential closest coordiante: ${JSON.stringify(firstOtherCoordinateCandidate)}`)
-    	console.log(`second potential closest coordiante: ${JSON.stringify(secondOtherCoordinateCandidate)}`)
-
-    	let uiCoordinateFirstCandidate = CoordinateTranslator.mapHexagonPointCoordinate(firstOtherCoordinateCandidate)
-    	let uiCoordinateSecondCandidate = CoordinateTranslator.mapHexagonPointCoordinate(secondOtherCoordinateCandidate)
-
-    	console.log(`First closest road candidate UI: ${JSON.stringify(uiCoordinateFirstCandidate)}`)
-    	console.log(`Second closest road candidate UI: ${JSON.stringify(uiCoordinateSecondCandidate)}`)
-
-
-    	let closestRoad = Math.abs(
-    		uiCoordinate.x - uiCoordinateFirstCandidate.x
-    	) > 
-    	Math.abs(
-    		uiCoordinate.x - uiCoordinateSecondCandidate.x
-    	) ? {x: closestCoordinateUIMapped.x, y: closestCoordinateUIMapped.y, x1: uiCoordinateFirstCandidate.x, y1: uiCoordinateFirstCandidate.y} as LineToDraw
-    	: {x: closestCoordinateUIMapped.x, y: closestCoordinateUIMapped.y, x1: uiCoordinateSecondCandidate.x, y1: uiCoordinateSecondCandidate.y} as LineToDraw
-
-    	console.log(`Closest Road: ${JSON.stringify(closestRoad)}`)
-
-    	return closestRoad
+    	return { x: closestCoordinateUIMapped.x, y: closestCoordinateUIMapped.y, x1: secondClosestCoordinateUIMapped.x, y1: secondClosestCoordinateUIMapped.y}
     }
 
     // takes in list of roads which share coordinate ${connectedRoadSharedCoordinate}
@@ -138,6 +105,7 @@ export default abstract class CoordinateTranslator {
 
     	console.log(`second closest point: ${JSON.stringify(currentLeastDistanceCoord)}`)
 
+    	return currentLeastDistanceCoord
     }
 
     private static findClosestCoordinate(uiCoordinate: CatanCoordinate): CatanCoordinate {
