@@ -5,9 +5,6 @@ import RoadsToDraw from '../helpers/RoadsToDraw'
 
 export default abstract class CoordinateTranslator {
 
-	// Remembers when you converted your model coordinates into UI coordinates. 
-	private static theMappingMap = new Map<CatanCoordinate, CatanCoordinate>() 
-
     private static xCoordinateMultiplier = 85;
     private static yCoordinateMultiplier = 32;
     private static leftSideMargin = 40;
@@ -26,16 +23,6 @@ export default abstract class CoordinateTranslator {
 				y: coordinates.y1
 			} as CatanCoordinate
 		);
-
-		CoordinateTranslator.theMappingMap.set(
-			{x: coordinates.x, y: coordinates.y} as CatanCoordinate,
-			firstNewCoordinate
-		)
-
-		CoordinateTranslator.theMappingMap.set(
-			{x: coordinates.x1, y: coordinates.y1} as CatanCoordinate,
-			secondNewCoordinate
-		)
 
 		return {
 			x: firstNewCoordinate.x,
