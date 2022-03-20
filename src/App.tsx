@@ -95,8 +95,7 @@ function CatanGameBoard() {
             let yCoordinate = e.clientY
 
             let closestRoad = CoordinateTranslator.closestRoad(
-                { x: xCoordinate, y: yCoordinate } as CatanCoordinate,
-                30 /* px */
+                { x: xCoordinate, y: yCoordinate } as CatanCoordinate
             )
 
             canvasCtxRef.current = canvasRef.current.getContext('2d');
@@ -106,7 +105,7 @@ function CatanGameBoard() {
             ctx!.moveTo(closestRoad.x, closestRoad.y);
             ctx!.lineTo(closestRoad.x1, closestRoad.y1);
             ctx!.strokeStyle = "red";
-            ctx!.lineWidth = 3;
+            ctx!.lineWidth = 7;
             ctx!.stroke();
 
           }

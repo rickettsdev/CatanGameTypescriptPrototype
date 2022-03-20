@@ -32,7 +32,7 @@ export default abstract class CoordinateTranslator {
 		} as LineToDraw
     }
 
-    public static closestRoad(uiCoordinate: CatanCoordinate, maxPixelDistance: number): LineToDraw {
+    public static closestRoad(uiCoordinate: CatanCoordinate): LineToDraw {
     	let closestCoordinate = CoordinateTranslator.findClosestCoordinate(uiCoordinate)
     	let closestCoordinateUIMapped = CoordinateTranslator.mapHexagonPointCoordinate(closestCoordinate)
 
@@ -56,7 +56,18 @@ export default abstract class CoordinateTranslator {
     	return { x: closestCoordinateUIMapped.x, y: closestCoordinateUIMapped.y, x1: secondClosestCoordinateUIMapped.x, y1: secondClosestCoordinateUIMapped.y}
     }
 
+    // Private Functions
+
     // takes in list of roads which share coordinate ${connectedRoadSharedCoordinate}
+    /*
+	* Input
+	* $connectedRoads, along with their $sharedCoordinate and the original 
+	* $touchEventCoord.
+	*
+	* Returns 
+	* Second closest coordinate to $touchEventCoord, assuming $sharedCoordinate 
+	* was the closest.
+    */
     private static findSecondClosestPoint(
     	connectedRoads: Array<LineToDraw>,
     	sharedCoordinate: CatanCoordinate,
@@ -110,8 +121,6 @@ export default abstract class CoordinateTranslator {
     	return {x: closestModelXCoordinate, y: closestModelYCoordinate} as CatanCoordinate
     }
 
-
-    // Private Functions
     private static mapHexagonPointCoordinate(coordinate: CatanCoordinate): CatanCoordinate {
 
     	const newXCoordinate = CoordinateTranslator.calculateLeftSideMargin(coordinate.y) + coordinate.x * CoordinateTranslator.xCoordinateMultiplier;
