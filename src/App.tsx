@@ -28,6 +28,22 @@ function App() {
   );
 }
 
+// TODO: Clean this up
+  const fetchRoads = async (): Promise<number> => {
+      const requestHeaders: HeadersInit = new Headers();
+      requestHeaders.set('Content-Type', 'application/json');
+      requestHeaders.set('Access-Control-Allow-Origin', '*');
+
+      const response = await fetch('http://localhost:4567/catan/roads', {
+        method: 'GET',
+        /*mode: "no-cors",*/
+        headers: requestHeaders
+      }).then(response => response.json()).catch(error => console.log(error))
+
+      console.log(response)
+      return 5
+  }
+
 
 // Testing State for the board.
 function TestState() {
@@ -46,8 +62,19 @@ function CatanGameBoard() {
 
   let canvasCtxRef = React.useRef<CanvasRenderingContext2D | null>(null);
 
+  // const [value, setValue] = React.useState<void>(fetchRoads);
+
+  // TODO: Paint roads from API
+  // idea: Move fetch roads here returning a completion handler with roads,
+  // update canvas from completion.
+
   useEffect(() => { 
-    // Initialize
+
+    // first, fetch game pieces
+    fetchRoads()
+    // console.log(value)
+
+    // Second, Initialize Canvas and print
     if (canvasRef.current) {
       canvasCtxRef.current = canvasRef.current.getContext('2d');
       let ctx = canvasCtxRef.current; // Assigning to a temp variable
@@ -64,7 +91,7 @@ function CatanGameBoard() {
         ctx!.lineWidth = width; 
         ctx!.stroke();
       }
-      
+      console.log("Done painting board.")
     }
   }, []);
 
@@ -80,7 +107,6 @@ function CatanGameBoard() {
     "Light travels faster than sound. This is why some people appear bright until you hear them speak.",
     "The difference between stupidity and genius is that genius has its limits"
   ]
-
 
   return (
     <div>
