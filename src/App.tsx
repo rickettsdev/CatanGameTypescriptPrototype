@@ -28,32 +28,21 @@ function App() {
     <div>
       <CatanGameBoard />
       <h3>CatanBoard</h3>
-      <TestState />
     </div>
   );
 }
 
 // TODO: Clean this up
-  const fetchRoads = async (): Promise<CatanApiRoadsResponse> => {
+  const fetchRoads = async (func: { (response: CatanApiRoadsResponse): void }): Promise<CatanApiRoadsResponse> => {
       const response = await fetch('http://localhost:4567/catan/roads', {
         method: 'GET'
       }).then(response => response.json()).catch(error => console.log(error))
 
       let responseModel = JSON.parse(response) as CatanApiRoadsResponse
-
+      func(responseModel)
       console.log(responseModel)
       return responseModel
   }
-
-
-// Testing State for the board.
-function TestState() {
-  let [roadsToDraw, updateRoadsToDraw] = React.useState(createRoadsMap())
-  let newRoads = () => updateRoadsToDraw(roads => {
-    return roadsToDraw
-  })
-  return <button onClick={newRoads}>{JSON.stringify(roadsToDraw.size)}</button>
-}
 
 function CatanGameBoard() {
 
@@ -63,13 +52,45 @@ function CatanGameBoard() {
 
   let canvasCtxRef = React.useRef<CanvasRenderingContext2D | null>(null);
 
-  const [value, setValue] = React.useState<Promise<CatanApiRoadsResponse>>(fetchRoads);
+  // const [value, setValue] = React.useState<Promise<CatanApiRoadsResponse>>(fetchRoads);
 
   // TODO: Paint roads from API
   // idea: Move fetch roads here returning a completion handler with roads,
   // update canvas from completion.
 
   useEffect(() => { 
+    fetchRoads((response) => {
+      console.log("In the completion block")
+      if (canvasRef.current) {
+        canvasCtxRef.current = canvasRef.current.getContext('2d');
+        let ctx = canvasCtxRef.current; // Assigning to a temp variable
+        let redRoads = response.red
+        var color = 'red';
+        let width = 5;
+        for(var road of redRoads) {
+          console.log(JSON.stringify(road))
+          let uiCoordinates = CoordinateTranslator.uiCoordinateMap(road)
+          ctx!.beginPath(); // Note the Non Null Assertion
+          ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
+          ctx!.lineTo(uiCoordinates.x1, uiCoordinates.y1);
+          ctx!.strokeStyle = color;
+          ctx!.lineWidth = width; 
+          ctx!.stroke();
+        }
+        var color = 'blue';
+        let blueRoads = response.blue
+        for(var road of blueRoads) {
+          console.log(JSON.stringify(road))
+          let uiCoordinates = CoordinateTranslator.uiCoordinateMap(road)
+          ctx!.beginPath(); // Note the Non Null Assertion
+          ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
+          ctx!.lineTo(uiCoordinates.x1, uiCoordinates.y1);
+          ctx!.strokeStyle = color;
+          ctx!.lineWidth = width; 
+          ctx!.stroke();
+        }
+      }
+    })
 
     // first, fetch game pieces
     // fetchRoads()
