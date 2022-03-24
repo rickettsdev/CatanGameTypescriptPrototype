@@ -14,9 +14,14 @@ import {CatanGameColor} from './models/CatanGameColor'
 
 
 import {CatanGameBoardState} from './state/CatanGameBoardState'
-
 import './App.css';
 
+interface CatanApiRoadsResponse {
+  red: Array<LineToDraw>,
+  yellow: Array<LineToDraw>,
+  blue: Array<LineToDraw>,
+  white: Array<LineToDraw>
+}
 
 function App() {
   return (
@@ -29,19 +34,15 @@ function App() {
 }
 
 // TODO: Clean this up
-  const fetchRoads = async (): Promise<number> => {
-      const requestHeaders: HeadersInit = new Headers();
-      requestHeaders.set('Content-Type', 'application/json');
-      requestHeaders.set('Access-Control-Allow-Origin', '*');
-
+  const fetchRoads = async (): Promise<CatanApiRoadsResponse> => {
       const response = await fetch('http://localhost:4567/catan/roads', {
-        method: 'GET',
-        /*mode: "no-cors",*/
-        headers: requestHeaders
+        method: 'GET'
       }).then(response => response.json()).catch(error => console.log(error))
 
-      console.log(response)
-      return 5
+      let responseModel = JSON.parse(response) as CatanApiRoadsResponse
+
+      console.log(responseModel)
+      return responseModel
   }
 
 
@@ -62,7 +63,7 @@ function CatanGameBoard() {
 
   let canvasCtxRef = React.useRef<CanvasRenderingContext2D | null>(null);
 
-  // const [value, setValue] = React.useState<void>(fetchRoads);
+  const [value, setValue] = React.useState<Promise<CatanApiRoadsResponse>>(fetchRoads);
 
   // TODO: Paint roads from API
   // idea: Move fetch roads here returning a completion handler with roads,
@@ -71,7 +72,7 @@ function CatanGameBoard() {
   useEffect(() => { 
 
     // first, fetch game pieces
-    fetchRoads()
+    // fetchRoads()
     // console.log(value)
 
     // Second, Initialize Canvas and print
