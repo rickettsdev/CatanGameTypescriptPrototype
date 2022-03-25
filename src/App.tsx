@@ -10,8 +10,10 @@ import CatanCoordinate from './models/CatanCoordinate'
 
 import CatanApiRoadsResponse from './api/models/CatanApiRoadsResponse'
 import CatanApiSettlementResponse from './api/models/CatanApiSettlementResponse'
+import { catanFetchApi } from './api/CatanApiManager';
 
 import './App.css';
+import LineToDraw from './models/LineToDraw';
 
 function App() {
   return (
@@ -22,43 +24,14 @@ function App() {
   );
 }
 
-// TODO: Clean this up
-  const fetchRoads = async (completion: { (response: CatanApiRoadsResponse): void }): Promise<CatanApiRoadsResponse> => {
-      const response = await fetch('http://localhost:4567/catan/roads', {
-        method: 'GET'
-      }).then(response => response.json()).catch(error => console.log(error))
-
-      let responseModel = JSON.parse(response) as CatanApiRoadsResponse
-      completion(responseModel)
-      console.log(responseModel)
-      return responseModel
-  }
-
-  const fetchSettlements = async(completion: { (response: CatanApiSettlementResponse): void}): Promise<CatanApiSettlementResponse> => {
-    const response = await fetch('http://localhost:4567/catan/settlements', {
-      method: 'GET'
-    }).then(response => response.json()).catch(error => console.log(error))
-
-    let responseModel = JSON.parse(response) as CatanApiSettlementResponse
-    completion(responseModel)
-    console.log(responseModel)
-    return responseModel
-  }
-
 function CatanGameBoard() {
 
   let canvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
   let canvasCtxRef = React.useRef<CanvasRenderingContext2D | null>(null);
 
-  // const [value, setValue] = React.useState<Promise<CatanApiRoadsResponse>>(fetchRoads);
-
-  // TODO: Paint roads from API
-  // idea: Move fetch roads here returning a completion handler with roads,
-  // update canvas from completion.
-
   useEffect(() => { 
-    fetchRoads((response) => {
+    catanFetchApi<CatanApiRoadsResponse>('/roads', (response) => {
       if (canvasRef.current) {
         canvasCtxRef.current = canvasRef.current.getContext('2d');
         let ctx = canvasCtxRef.current; // Assigning to a temp variable
@@ -88,7 +61,7 @@ function CatanGameBoard() {
       }
     })
 
-    fetchSettlements((response) => {
+    catanFetchApi<CatanApiSettlementResponse>('/settlements', (response) => {
       if (canvasRef.current) {
         canvasCtxRef.current = canvasRef.current.getContext('2d');
         let ctx = canvasCtxRef.current; // Assigning to a temp variable
@@ -99,7 +72,7 @@ function CatanGameBoard() {
           let uiCoordinates = CoordinateTranslator.uiCoordinateMapSingle(settlement)
           ctx!.beginPath(); // Note the Non Null Assertion
           ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
-          ctx!.lineTo(uiCoordinates.x+width, uiCoordinates.y+width);
+          ctx!.lineTo(uiCoordinates.x, uiCoordinates.y+width);
           ctx!.strokeStyle = color;
           ctx!.lineWidth = width; 
           ctx!.stroke();
@@ -110,17 +83,13 @@ function CatanGameBoard() {
           let uiCoordinates = CoordinateTranslator.uiCoordinateMapSingle({x: settlement1.x, y: settlement1.y} as CatanCoordinate)
           ctx!.beginPath(); // Note the Non Null Assertion
           ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
-          ctx!.lineTo(uiCoordinates.x+width, uiCoordinates.y+width);
+          ctx!.lineTo(uiCoordinates.x, uiCoordinates.y+width);
           ctx!.strokeStyle = color;
           ctx!.lineWidth = width; 
           ctx!.stroke();
         }
       }
     })
-
-    // first, fetch game pieces
-    // fetchRoads()
-    // console.log(value)
 
     // Second, Initialize Canvas and print
     if (canvasRef.current) {
