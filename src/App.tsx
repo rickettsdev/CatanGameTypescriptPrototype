@@ -3,25 +3,15 @@ import { useEffect, useRef } from 'react'
 
 import CoordinateTranslator from './helpers/CoordinateTranslator'
 import RoadsToDraw from './helpers/RoadsToDraw'
-import {createRoadsMap} from './helpers/BoardGenerationTools'
 
 import QuoteApp from './components/QuoteApp'
 
-import LineToDraw from './models/LineToDraw';
-import LineProperties from './models/LineProperties'
 import CatanCoordinate from './models/CatanCoordinate'
-import {CatanGameColor} from './models/CatanGameColor'
 
+import CatanApiRoadsResponse from './api/models/CatanApiRoadsResponse'
+import CatanApiSettlementResponse from './api/models/CatanApiSettlementResponse'
 
-import {CatanGameBoardState} from './state/CatanGameBoardState'
 import './App.css';
-
-interface CatanApiRoadsResponse {
-  red: Array<LineToDraw>,
-  yellow: Array<LineToDraw>,
-  blue: Array<LineToDraw>,
-  white: Array<LineToDraw>
-}
 
 function App() {
   return (
@@ -33,20 +23,29 @@ function App() {
 }
 
 // TODO: Clean this up
-  const fetchRoads = async (func: { (response: CatanApiRoadsResponse): void }): Promise<CatanApiRoadsResponse> => {
+  const fetchRoads = async (completion: { (response: CatanApiRoadsResponse): void }): Promise<CatanApiRoadsResponse> => {
       const response = await fetch('http://localhost:4567/catan/roads', {
         method: 'GET'
       }).then(response => response.json()).catch(error => console.log(error))
 
       let responseModel = JSON.parse(response) as CatanApiRoadsResponse
-      func(responseModel)
+      completion(responseModel)
       console.log(responseModel)
       return responseModel
   }
 
-function CatanGameBoard() {
+  const fetchSettlements = async(completion: { (response: CatanApiSettlementResponse): void}): Promise<CatanApiSettlementResponse> => {
+    const response = await fetch('http://localhost:4567/catan/settlements', {
+      method: 'GET'
+    }).then(response => response.json()).catch(error => console.log(error))
 
-  let test = createRoadsMap()
+    let responseModel = JSON.parse(response) as CatanApiSettlementResponse
+    completion(responseModel)
+    console.log(responseModel)
+    return responseModel
+  }
+
+function CatanGameBoard() {
 
   let canvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
@@ -60,7 +59,6 @@ function CatanGameBoard() {
 
   useEffect(() => { 
     fetchRoads((response) => {
-      console.log("In the completion block")
       if (canvasRef.current) {
         canvasCtxRef.current = canvasRef.current.getContext('2d');
         let ctx = canvasCtxRef.current; // Assigning to a temp variable
@@ -68,7 +66,6 @@ function CatanGameBoard() {
         var color = 'red';
         let width = 5;
         for(var road of redRoads) {
-          console.log(JSON.stringify(road))
           let uiCoordinates = CoordinateTranslator.uiCoordinateMap(road)
           ctx!.beginPath(); // Note the Non Null Assertion
           ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
@@ -77,14 +74,43 @@ function CatanGameBoard() {
           ctx!.lineWidth = width; 
           ctx!.stroke();
         }
-        var color = 'blue';
+        color = 'blue';
         let blueRoads = response.blue
-        for(var road of blueRoads) {
-          console.log(JSON.stringify(road))
-          let uiCoordinates = CoordinateTranslator.uiCoordinateMap(road)
+        for(var road1 of blueRoads) {
+          let uiCoordinates = CoordinateTranslator.uiCoordinateMap(road1)
           ctx!.beginPath(); // Note the Non Null Assertion
           ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
           ctx!.lineTo(uiCoordinates.x1, uiCoordinates.y1);
+          ctx!.strokeStyle = color;
+          ctx!.lineWidth = width; 
+          ctx!.stroke();
+        }
+      }
+    })
+
+    fetchSettlements((response) => {
+      if (canvasRef.current) {
+        canvasCtxRef.current = canvasRef.current.getContext('2d');
+        let ctx = canvasCtxRef.current; // Assigning to a temp variable
+        let redSettlements = response.red
+        var color = 'red';
+        let width = 15;
+        for(var settlement of redSettlements) {
+          let uiCoordinates = CoordinateTranslator.uiCoordinateMapSingle(settlement)
+          ctx!.beginPath(); // Note the Non Null Assertion
+          ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
+          ctx!.lineTo(uiCoordinates.x+width, uiCoordinates.y+width);
+          ctx!.strokeStyle = color;
+          ctx!.lineWidth = width; 
+          ctx!.stroke();
+        }
+        color = 'blue';
+        let blueSettlements = response.blue
+        for(var settlement1 of blueSettlements) {
+          let uiCoordinates = CoordinateTranslator.uiCoordinateMapSingle({x: settlement1.x, y: settlement1.y} as CatanCoordinate)
+          ctx!.beginPath(); // Note the Non Null Assertion
+          ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
+          ctx!.lineTo(uiCoordinates.x+width, uiCoordinates.y+width);
           ctx!.strokeStyle = color;
           ctx!.lineWidth = width; 
           ctx!.stroke();
@@ -116,10 +142,6 @@ function CatanGameBoard() {
       console.log("Done painting board.")
     }
   }, []);
-
-  for (var roads of RoadsToDraw.roadsCoordinates().filter(rd => rd.y === 0)) {
-    console.log(JSON.stringify(CoordinateTranslator.uiCoordinateMap(roads)));
-  }
 
   const randomQuotes: string[] = [
     "Before you judge a man, walk a mile in his shoes. After that who cares?... He’s a mile away and you’ve got his shoes!",

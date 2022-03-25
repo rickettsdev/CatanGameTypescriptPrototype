@@ -32,6 +32,10 @@ export default abstract class CoordinateTranslator {
 		} as LineToDraw
     }
 
+	public static uiCoordinateMapSingle(coordinate: CatanCoordinate): CatanCoordinate {
+		return CoordinateTranslator.mapHexagonPointCoordinate(coordinate)
+	}
+
     public static closestRoad(uiCoordinate: CatanCoordinate): LineToDraw {
     	let closestCoordinate = CoordinateTranslator.findClosestCoordinate(uiCoordinate)
     	let closestCoordinateUIMapped = CoordinateTranslator.mapHexagonPointCoordinate(closestCoordinate)
@@ -131,7 +135,7 @@ export default abstract class CoordinateTranslator {
 
     private static calculateLeftSideMargin(y: number): number {
 
-    	switch(y) {
+    	switch(Number(y)) {
     		case 0:
     		case 11:
     			return 4 * CoordinateTranslator.leftSideMargin;
