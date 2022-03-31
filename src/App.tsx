@@ -10,7 +10,7 @@ import CatanCoordinate from './models/CatanCoordinate'
 
 import CatanApiRoadsResponse from './api/models/CatanApiRoadsResponse'
 import CatanApiSettlementResponse from './api/models/CatanApiSettlementResponse'
-import { catanFetchApi } from './api/CatanApiManager';
+import { catanFetchApi, catanRoadPlacementAPI } from './api/CatanApiManager';
 
 import './App.css';
 import LineToDraw from './models/LineToDraw';
@@ -31,7 +31,9 @@ function CatanGameBoard() {
   let canvasCtxRef = React.useRef<CanvasRenderingContext2D | null>(null);
 
   useEffect(() => { 
-    catanFetchApi<CatanApiRoadsResponse>('/roads', (response) => {
+    catanFetchApi<CatanApiRoadsResponse>('/roads',{
+      method: 'GET'
+    }, (response) => {
       if (canvasRef.current) {
         canvasCtxRef.current = canvasRef.current.getContext('2d');
         let ctx = canvasCtxRef.current; // Assigning to a temp variable
@@ -61,7 +63,9 @@ function CatanGameBoard() {
       }
     })
 
-    catanFetchApi<CatanApiSettlementResponse>('/settlements', (response) => {
+    catanFetchApi<CatanApiSettlementResponse>('/settlements', {
+      method: 'GET'
+    }, (response) => {
       if (canvasRef.current) {
         canvasCtxRef.current = canvasRef.current.getContext('2d');
         let ctx = canvasCtxRef.current; // Assigning to a temp variable
@@ -128,6 +132,12 @@ function CatanGameBoard() {
         width={500}
         height={375}
         onClick={(e) => {
+
+          catanRoadPlacementAPI<{}>({
+            method: 'POST'
+          }, (response) => {
+              console.log(response)
+          })
           if (canvasRef.current) {
 
             let xCoordinate = e.clientX
@@ -143,7 +153,7 @@ function CatanGameBoard() {
             ctx!.beginPath(); // Note the Non Null Assertion
             ctx!.moveTo(closestRoad.x, closestRoad.y);
             ctx!.lineTo(closestRoad.x1, closestRoad.y1);
-            ctx!.strokeStyle = "red";
+            ctx!.strokeStyle = "blue";
             ctx!.lineWidth = 7;
             ctx!.stroke();
 
