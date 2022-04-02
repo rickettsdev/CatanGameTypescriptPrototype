@@ -14,6 +14,7 @@ import { catanFetchApi, catanRoadPlacementAPI } from './api/CatanApiManager';
 
 import './App.css';
 import LineToDraw from './models/LineToDraw';
+import { CatanGameColor } from './models/CatanGameColor';
 
 function App() {
   return (
@@ -132,12 +133,6 @@ function CatanGameBoard() {
         width={500}
         height={375}
         onClick={(e) => {
-
-          catanRoadPlacementAPI<{}>({
-            method: 'POST'
-          }, (response) => {
-              console.log(response)
-          })
           if (canvasRef.current) {
 
             let xCoordinate = e.clientX
@@ -147,12 +142,21 @@ function CatanGameBoard() {
                 { x: xCoordinate, y: yCoordinate } as CatanCoordinate
             )
 
+            catanRoadPlacementAPI<{}>({
+              x: closestRoad.modelCoordinate.x, 
+              y: closestRoad.modelCoordinate.y, 
+              x1: closestRoad.modelCoordinate.x1, 
+              y1: closestRoad.modelCoordinate.y1
+            } as LineToDraw, CatanGameColor.BLUE, (response) => {
+              console.log(response)
+          })
+
             canvasCtxRef.current = canvasRef.current.getContext('2d');
             let ctx = canvasCtxRef.current; // Assigning to a temp variable
 
             ctx!.beginPath(); // Note the Non Null Assertion
-            ctx!.moveTo(closestRoad.x, closestRoad.y);
-            ctx!.lineTo(closestRoad.x1, closestRoad.y1);
+            ctx!.moveTo(closestRoad.uiCoordinates.x, closestRoad.uiCoordinates.y);
+            ctx!.lineTo(closestRoad.uiCoordinates.x1, closestRoad.uiCoordinates.y1);
             ctx!.strokeStyle = "blue";
             ctx!.lineWidth = 7;
             ctx!.stroke();

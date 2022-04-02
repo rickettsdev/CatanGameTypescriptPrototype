@@ -1,5 +1,6 @@
 import LineToDraw from '../models/LineToDraw';
 import CatanCoordinate from '../models/CatanCoordinate';
+import CatanGameRoadComposite from '../models/CatanGameRoadComposite';
 
 import RoadsToDraw from '../helpers/RoadsToDraw'
 
@@ -36,7 +37,7 @@ export default abstract class CoordinateTranslator {
 		return CoordinateTranslator.mapHexagonPointCoordinate(coordinate)
 	}
 
-    public static closestRoad(uiCoordinate: CatanCoordinate): LineToDraw {
+    public static closestRoad(uiCoordinate: CatanCoordinate): CatanGameRoadComposite {
     	let closestCoordinate = CoordinateTranslator.findClosestCoordinate(uiCoordinate)
     	let closestCoordinateUIMapped = CoordinateTranslator.mapHexagonPointCoordinate(closestCoordinate)
 
@@ -56,8 +57,10 @@ export default abstract class CoordinateTranslator {
     	)
 
     	let secondClosestCoordinateUIMapped = CoordinateTranslator.mapHexagonPointCoordinate(secondClosestCoordinate)
-
-    	return { x: closestCoordinateUIMapped.x, y: closestCoordinateUIMapped.y, x1: secondClosestCoordinateUIMapped.x, y1: secondClosestCoordinateUIMapped.y}
+		
+		let uiRoadCoords: LineToDraw = { x: closestCoordinateUIMapped.x, y: closestCoordinateUIMapped.y, x1: secondClosestCoordinateUIMapped.x, y1: secondClosestCoordinateUIMapped.y}
+		let modelRoadCoords: LineToDraw = { x: closestCoordinate.x, y: closestCoordinate.y, x1: secondClosestCoordinate.x, y1: secondClosestCoordinate.y}
+    	return {uiCoordinates: uiRoadCoords, modelCoordinate: modelRoadCoords}
     }
 
     // Private Functions
