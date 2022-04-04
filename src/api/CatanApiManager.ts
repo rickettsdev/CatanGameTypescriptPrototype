@@ -1,4 +1,3 @@
-import { CatanGameColor } from "../models/CatanGameColor"
 import LineToDraw from "../models/LineToDraw"
 
 let host = "localhost"

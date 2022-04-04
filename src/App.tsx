@@ -27,6 +27,7 @@ function App() {
 
 type PlayerState = {
   color: string,
+  actionType: string
 }
 
 function CatanGameBoard() {
@@ -35,6 +36,8 @@ function CatanGameBoard() {
 
   const setRedRoad = (): void => {setPlayerState({color:"RED"})}
   const setBlueRoad = (): void => {setPlayerState({color:"BLUE"})}
+  const setYellowRoad = (): void => {setPlayerState({color:"YELLOW"})}
+  const setWhiteRoad = (): void => {setPlayerState({color:"WHITE"})}
 
   let canvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
@@ -47,28 +50,28 @@ function CatanGameBoard() {
       if (canvasRef.current) {
         canvasCtxRef.current = canvasRef.current.getContext('2d');
         let ctx = canvasCtxRef.current; // Assigning to a temp variable
-        let redRoads = response.red
-        var color = 'red';
-        let width = 5;
-        for(var road of redRoads) {
-          let uiCoordinates = CoordinateTranslator.uiCoordinateMap(road)
-          ctx!.beginPath(); // Note the Non Null Assertion
-          ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
-          ctx!.lineTo(uiCoordinates.x1, uiCoordinates.y1);
-          ctx!.strokeStyle = color;
-          ctx!.lineWidth = width; 
-          ctx!.stroke();
-        }
-        color = 'blue';
-        let blueRoads = response.blue
-        for(var road1 of blueRoads) {
-          let uiCoordinates = CoordinateTranslator.uiCoordinateMap(road1)
-          ctx!.beginPath(); // Note the Non Null Assertion
-          ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
-          ctx!.lineTo(uiCoordinates.x1, uiCoordinates.y1);
-          ctx!.strokeStyle = color;
-          ctx!.lineWidth = width; 
-          ctx!.stroke();
+
+        let colorResponse = [
+          {color: "red", response: response.red},
+          {color: "blue", response: response.blue},
+          {color: "yellow", response: response.yellow},
+          {color: "white", response: response.white},
+        ]
+        let width = 5
+        for(var playerPieces of colorResponse) {
+         let response = playerPieces.response
+         let color = playerPieces.color 
+
+          for(var road of response) {
+            let uiCoordinates = CoordinateTranslator.uiCoordinateMap(road)
+            ctx!.beginPath(); // Note the Non Null Assertion
+            ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
+            ctx!.lineTo(uiCoordinates.x1, uiCoordinates.y1);
+            ctx!.strokeStyle = color;
+            ctx!.lineWidth = width; 
+            ctx!.stroke();
+          }
+
         }
       }
     })
@@ -79,28 +82,26 @@ function CatanGameBoard() {
       if (canvasRef.current) {
         canvasCtxRef.current = canvasRef.current.getContext('2d');
         let ctx = canvasCtxRef.current; // Assigning to a temp variable
-        let redSettlements = response.red
-        var color = 'red';
-        let width = 15;
-        for(var settlement of redSettlements) {
-          let uiCoordinates = CoordinateTranslator.uiCoordinateMapSingle(settlement)
-          ctx!.beginPath(); // Note the Non Null Assertion
-          ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
-          ctx!.lineTo(uiCoordinates.x, uiCoordinates.y+width);
-          ctx!.strokeStyle = color;
-          ctx!.lineWidth = width; 
-          ctx!.stroke();
-        }
-        color = 'blue';
-        let blueSettlements = response.blue
-        for(var settlement1 of blueSettlements) {
-          let uiCoordinates = CoordinateTranslator.uiCoordinateMapSingle({x: settlement1.x, y: settlement1.y} as CatanCoordinate)
-          ctx!.beginPath(); // Note the Non Null Assertion
-          ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
-          ctx!.lineTo(uiCoordinates.x, uiCoordinates.y+width);
-          ctx!.strokeStyle = color;
-          ctx!.lineWidth = width; 
-          ctx!.stroke();
+
+        let width = 15
+
+        let playerSettlements = [
+          {color: "red", response: response.red},
+          {color: "blue", response: response.blue},
+          {color: "yellow", response: response.yellow},
+          {color: "white", response: response.white},
+        ]
+
+        for (var currentPlayer of playerSettlements) {
+          for(var settlement of currentPlayer.response) {
+            let uiCoordinates = CoordinateTranslator.uiCoordinateMapSingle({x: settlement.x, y: settlement.y} as CatanCoordinate)
+            ctx!.beginPath(); // Note the Non Null Assertion
+            ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
+            ctx!.lineTo(uiCoordinates.x, uiCoordinates.y+width);
+            ctx!.strokeStyle = currentPlayer.color;
+            ctx!.lineWidth = width; 
+            ctx!.stroke();
+          }
         }
       }
     })
@@ -176,6 +177,8 @@ function CatanGameBoard() {
       />
        <button onClick={setRedRoad}>Red Roads</button>
        <button onClick={setBlueRoad}>Blue Roads</button>
+       <button onClick={setYellowRoad}>Yellow Roads</button>
+       <button onClick={setWhiteRoad}>White Roads</button>
       <QuoteApp quotes={randomQuotes}/>
     </div>
   );
