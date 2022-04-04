@@ -10,7 +10,7 @@ import CatanCoordinate from './models/CatanCoordinate'
 
 import CatanApiRoadsResponse from './api/models/CatanApiRoadsResponse'
 import CatanApiSettlementResponse from './api/models/CatanApiSettlementResponse'
-import { catanFetchApi, catanRoadPlacementAPI, catanSettlementPlacementAPI } from './api/CatanApiManager';
+import { catanFetchApi, catanAddSettlementAPI, catanAddRoadAPI } from './api/CatanApiManager';
 
 import './App.css';
 import LineToDraw from './models/LineToDraw';
@@ -154,43 +154,39 @@ function CatanGameBoard() {
             let ctx = canvasCtxRef.current; // Assigning to a temp variable
 
             if(playerState.actionType === "R") {
-              let closestRoad = CoordinateTranslator.closestRoad(
-                  { x: xCoordinate, y: yCoordinate } as CatanCoordinate
-              )
-
-              catanRoadPlacementAPI<{}>({
+              let closestRoad = CoordinateTranslator.closestRoad({ x: xCoordinate, y: yCoordinate } as CatanCoordinate)
+              catanAddRoadAPI({
                 x: closestRoad.modelCoordinate.x, 
                 y: closestRoad.modelCoordinate.y, 
                 x1: closestRoad.modelCoordinate.x1, 
                 y1: closestRoad.modelCoordinate.y1
-              } as LineToDraw, playerState.color, (response) => {
-                console.log(response)
-            })
-
-              ctx!.beginPath(); // Note the Non Null Assertion
-              ctx!.moveTo(closestRoad.uiCoordinates.x, closestRoad.uiCoordinates.y);
-              ctx!.lineTo(closestRoad.uiCoordinates.x1, closestRoad.uiCoordinates.y1);
-              ctx!.strokeStyle = playerState.color.toLowerCase();
-              ctx!.lineWidth = 7;
-              ctx!.stroke();
+              }, playerState.color).then((success) => {
+                if (success) {
+                  ctx!.beginPath(); // Note the Non Null Assertion
+                  ctx!.moveTo(closestRoad.uiCoordinates.x, closestRoad.uiCoordinates.y);
+                  ctx!.lineTo(closestRoad.uiCoordinates.x1, closestRoad.uiCoordinates.y1);
+                  ctx!.strokeStyle = playerState.color.toLowerCase();
+                  ctx!.lineWidth = 7;
+                  ctx!.stroke();
+                }
+              }).catch(error => console.log(error))
             } else if (playerState.actionType === "S") {
               let closestSettlement = CoordinateTranslator.closestSettlementLocation({x: xCoordinate, y: yCoordinate})
               let width = 15
-
-              catanSettlementPlacementAPI<{}>({
+              catanAddSettlementAPI({
                 x: closestSettlement.modelCoordinate.x, 
                 y: closestSettlement.modelCoordinate.y
-              } as CatanCoordinate, playerState.color, (response) => {
-                console.log(response)
+              }, playerState.color).then((success) => {
+                if(success) {
+                  ctx!.beginPath(); // Note the Non Null Assertion
+                  ctx!.moveTo(closestSettlement.uiCoordinate.x, closestSettlement.uiCoordinate.y);
+                  ctx!.lineTo(closestSettlement.uiCoordinate.x, closestSettlement.uiCoordinate.y+width);
+                  ctx!.strokeStyle = playerState.color;
+                  ctx!.lineWidth = width; 
+                  ctx!.stroke();
+                }
               })
-
-              ctx!.beginPath(); // Note the Non Null Assertion
-              ctx!.moveTo(closestSettlement.uiCoordinate.x, closestSettlement.uiCoordinate.y);
-              ctx!.lineTo(closestSettlement.uiCoordinate.x, closestSettlement.uiCoordinate.y+width);
-              ctx!.strokeStyle = playerState.color;
-              ctx!.lineWidth = width; 
-              ctx!.stroke();
-
+              .catch(error=> console.log(error))
             }
         }
           console.log(`click on x: ${e.clientX}, y: ${e.clientY}`);
