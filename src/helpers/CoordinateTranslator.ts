@@ -1,6 +1,7 @@
 import LineToDraw from '../models/LineToDraw';
 import CatanCoordinate from '../models/CatanCoordinate';
 import CatanGameRoadComposite from '../models/CatanGameRoadComposite';
+import CatanGameCoordinateComposite from '../models/CatanGameCoordinateComposite';
 
 import RoadsToDraw from '../helpers/RoadsToDraw'
 
@@ -35,6 +36,13 @@ export default abstract class CoordinateTranslator {
 
 	public static uiCoordinateMapSingle(coordinate: CatanCoordinate): CatanCoordinate {
 		return CoordinateTranslator.mapHexagonPointCoordinate(coordinate)
+	}
+
+	public static closestSettlementLocation(uiCoordinate: CatanCoordinate): CatanGameCoordinateComposite {
+		let closestCoordinate = CoordinateTranslator.findClosestCoordinate(uiCoordinate)
+    	let closestCoordinateUIMapped = CoordinateTranslator.mapHexagonPointCoordinate(closestCoordinate)
+
+		return {uiCoordinate: closestCoordinateUIMapped, modelCoordinate: closestCoordinate}
 	}
 
     public static closestRoad(uiCoordinate: CatanCoordinate): CatanGameRoadComposite {

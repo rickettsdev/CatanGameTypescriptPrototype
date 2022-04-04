@@ -10,7 +10,7 @@ import CatanCoordinate from './models/CatanCoordinate'
 
 import CatanApiRoadsResponse from './api/models/CatanApiRoadsResponse'
 import CatanApiSettlementResponse from './api/models/CatanApiSettlementResponse'
-import { catanFetchApi, catanRoadPlacementAPI } from './api/CatanApiManager';
+import { catanFetchApi, catanRoadPlacementAPI, catanSettlementPlacementAPI } from './api/CatanApiManager';
 
 import './App.css';
 import LineToDraw from './models/LineToDraw';
@@ -32,12 +32,14 @@ type PlayerState = {
 
 function CatanGameBoard() {
 
-  const [playerState, setPlayerState] = useState({color:"BLUE"})
+  const [playerState, setPlayerState] = useState({color:"BLUE",actionType:"R"})
 
-  const setRedRoad = (): void => {setPlayerState({color:"RED"})}
-  const setBlueRoad = (): void => {setPlayerState({color:"BLUE"})}
-  const setYellowRoad = (): void => {setPlayerState({color:"YELLOW"})}
-  const setWhiteRoad = (): void => {setPlayerState({color:"WHITE"})}
+  const setRedPlayer = (): void => {setPlayerState({...playerState, color:"RED"})}
+  const setBluePlayer = (): void => {setPlayerState({...playerState, color:"BLUE"})}
+  const setYellowPlayer = (): void => {setPlayerState({...playerState, color:"YELLOW"})}
+  const setWhitePlayer = (): void => {setPlayerState({...playerState, color:"WHITE"})}
+  const setActionTypeSettlement = (): void => {setPlayerState({...playerState, actionType:"S"})}
+  const setActionTypeRoad = (): void => {setPlayerState({...playerState, actionType:"R"})}
 
   let canvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
@@ -148,37 +150,59 @@ function CatanGameBoard() {
             let xCoordinate = e.clientX
             let yCoordinate = e.clientY
 
-            let closestRoad = CoordinateTranslator.closestRoad(
-                { x: xCoordinate, y: yCoordinate } as CatanCoordinate
-            )
-
-            catanRoadPlacementAPI<{}>({
-              x: closestRoad.modelCoordinate.x, 
-              y: closestRoad.modelCoordinate.y, 
-              x1: closestRoad.modelCoordinate.x1, 
-              y1: closestRoad.modelCoordinate.y1
-            } as LineToDraw, playerState.color, (response) => {
-              console.log(response)
-          })
-
             canvasCtxRef.current = canvasRef.current.getContext('2d');
             let ctx = canvasCtxRef.current; // Assigning to a temp variable
 
-            ctx!.beginPath(); // Note the Non Null Assertion
-            ctx!.moveTo(closestRoad.uiCoordinates.x, closestRoad.uiCoordinates.y);
-            ctx!.lineTo(closestRoad.uiCoordinates.x1, closestRoad.uiCoordinates.y1);
-            ctx!.strokeStyle = playerState.color.toLowerCase();
-            ctx!.lineWidth = 7;
-            ctx!.stroke();
+            if(playerState.actionType === "R") {
+              let closestRoad = CoordinateTranslator.closestRoad(
+                  { x: xCoordinate, y: yCoordinate } as CatanCoordinate
+              )
 
-          }
+              catanRoadPlacementAPI<{}>({
+                x: closestRoad.modelCoordinate.x, 
+                y: closestRoad.modelCoordinate.y, 
+                x1: closestRoad.modelCoordinate.x1, 
+                y1: closestRoad.modelCoordinate.y1
+              } as LineToDraw, playerState.color, (response) => {
+                console.log(response)
+            })
+
+              ctx!.beginPath(); // Note the Non Null Assertion
+              ctx!.moveTo(closestRoad.uiCoordinates.x, closestRoad.uiCoordinates.y);
+              ctx!.lineTo(closestRoad.uiCoordinates.x1, closestRoad.uiCoordinates.y1);
+              ctx!.strokeStyle = playerState.color.toLowerCase();
+              ctx!.lineWidth = 7;
+              ctx!.stroke();
+            } else if (playerState.actionType === "S") {
+              let closestSettlement = CoordinateTranslator.closestSettlementLocation({x: xCoordinate, y: yCoordinate})
+              let width = 15
+
+              catanSettlementPlacementAPI<{}>({
+                x: closestSettlement.modelCoordinate.x, 
+                y: closestSettlement.modelCoordinate.y
+              } as CatanCoordinate, playerState.color, (response) => {
+                console.log(response)
+              })
+
+              ctx!.beginPath(); // Note the Non Null Assertion
+              ctx!.moveTo(closestSettlement.uiCoordinate.x, closestSettlement.uiCoordinate.y);
+              ctx!.lineTo(closestSettlement.uiCoordinate.x, closestSettlement.uiCoordinate.y+width);
+              ctx!.strokeStyle = playerState.color;
+              ctx!.lineWidth = width; 
+              ctx!.stroke();
+
+            }
+        }
           console.log(`click on x: ${e.clientX}, y: ${e.clientY}`);
         }}
       />
-       <button onClick={setRedRoad}>Red Roads</button>
-       <button onClick={setBlueRoad}>Blue Roads</button>
-       <button onClick={setYellowRoad}>Yellow Roads</button>
-       <button onClick={setWhiteRoad}>White Roads</button>
+       <button onClick={setRedPlayer}>Red Player</button>
+       <button onClick={setBluePlayer}>Blue Player</button>
+       <button onClick={setYellowPlayer}>Yellow Player</button>
+       <button onClick={setWhitePlayer}>White Player</button>
+       <button onClick={setActionTypeRoad}>Build Roads</button>
+       <button onClick={setActionTypeSettlement}>Build Settlements</button>
+       <h3>Current Color: {playerState.color}, Current Action: {playerState.actionType}</h3>
       <QuoteApp quotes={randomQuotes}/>
     </div>
   );

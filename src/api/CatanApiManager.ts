@@ -1,3 +1,4 @@
+import CatanCoordinate from "../models/CatanCoordinate"
 import LineToDraw from "../models/LineToDraw"
 
 let host = "localhost"
@@ -31,4 +32,21 @@ export async function catanRoadPlacementAPI<T>(lineToDraw: LineToDraw, color: st
                         .then(response => response.json())
                         .catch(error => console.log(error))
       return response
+}
+
+// This is POC for POST
+export async function catanSettlementPlacementAPI<T>(coordinate: CatanCoordinate, color: string,
+  completion: { (response: T): void}): Promise<T> {
+   let requestInit: RequestInit = {
+     method: 'POST'
+   }
+   const requestHeaders: HeadersInit = new Headers();
+   requestHeaders.set('x', `${coordinate.x}`)
+   requestHeaders.set('y', `${coordinate.y}`)
+   requestHeaders.set('color', `${color}`)
+   requestInit.headers = requestHeaders
+   const response = await fetch(`http://${host}:4567/catan/addSettlement`, requestInit)
+                       .then(response => response.json())
+                       .catch(error => console.log(error))
+     return response
 }
