@@ -27,6 +27,11 @@ function App() {
 
 function CatanGameBoard() {
 
+  var roadType = "BLUE"
+
+  const setRedRoad = (): void => {roadType = "RED"}
+  const setBlueRoad = (): void => {roadType = "BLUE"}
+
   let canvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
   let canvasCtxRef = React.useRef<CanvasRenderingContext2D | null>(null);
@@ -147,7 +152,7 @@ function CatanGameBoard() {
               y: closestRoad.modelCoordinate.y, 
               x1: closestRoad.modelCoordinate.x1, 
               y1: closestRoad.modelCoordinate.y1
-            } as LineToDraw, CatanGameColor.BLUE, (response) => {
+            } as LineToDraw, roadType, (response) => {
               console.log(response)
           })
 
@@ -157,7 +162,7 @@ function CatanGameBoard() {
             ctx!.beginPath(); // Note the Non Null Assertion
             ctx!.moveTo(closestRoad.uiCoordinates.x, closestRoad.uiCoordinates.y);
             ctx!.lineTo(closestRoad.uiCoordinates.x1, closestRoad.uiCoordinates.y1);
-            ctx!.strokeStyle = "blue";
+            ctx!.strokeStyle = roadType.toLowerCase();
             ctx!.lineWidth = 7;
             ctx!.stroke();
 
@@ -165,6 +170,8 @@ function CatanGameBoard() {
           console.log(`click on x: ${e.clientX}, y: ${e.clientY}`);
         }}
       />
+       <button onClick={setRedRoad}>Red Roads</button>
+       <button onClick={setBlueRoad}>Blue Roads</button>
       <QuoteApp quotes={randomQuotes}/>
     </div>
   );

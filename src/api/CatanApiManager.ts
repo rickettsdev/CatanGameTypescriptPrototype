@@ -1,9 +1,11 @@
 import { CatanGameColor } from "../models/CatanGameColor"
 import LineToDraw from "../models/LineToDraw"
 
+let host = "192.168.1.19"
+
 export async function catanFetchApi<T>(path: string, requestInit: RequestInit,
    completion: { (response: T): void}): Promise<T> {
-    const response = await fetch(`http://localhost:4567/catan${path}`, requestInit)
+    const response = await fetch(`http://${host}:4567/catan${path}`, requestInit)
                         .then(response => response.json())
                         .catch(error => console.log(error))
   
@@ -14,7 +16,7 @@ export async function catanFetchApi<T>(path: string, requestInit: RequestInit,
 }
 
 // This is POC for POST
-export async function catanRoadPlacementAPI<T>(lineToDraw: LineToDraw, color: CatanGameColor,
+export async function catanRoadPlacementAPI<T>(lineToDraw: LineToDraw, color: string,
    completion: { (response: T): void}): Promise<T> {
     let requestInit: RequestInit = {
       method: 'POST'
@@ -24,9 +26,9 @@ export async function catanRoadPlacementAPI<T>(lineToDraw: LineToDraw, color: Ca
     requestHeaders.set('y', `${lineToDraw.y}`)
     requestHeaders.set('x1', `${lineToDraw.x1}`)
     requestHeaders.set('y1', `${lineToDraw.y1}`)
-    requestHeaders.set('color', `BLUE`)
+    requestHeaders.set('color', `${color}`)
     requestInit.headers = requestHeaders
-    const response = await fetch(`http://localhost:4567/catan/addRoad`, requestInit)
+    const response = await fetch(`http://${host}:4567/catan/addRoad`, requestInit)
                         .then(response => response.json())
                         .catch(error => console.log(error))
       return response
