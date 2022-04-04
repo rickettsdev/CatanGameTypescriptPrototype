@@ -13,8 +13,6 @@ import CatanApiSettlementResponse from './api/models/CatanApiSettlementResponse'
 import { catanFetchApi, catanAddSettlementAPI, catanAddRoadAPI } from './api/CatanApiManager';
 
 import './App.css';
-import LineToDraw from './models/LineToDraw';
-import { CatanGameColor } from './models/CatanGameColor';
 
 function App() {
   return (
@@ -27,12 +25,19 @@ function App() {
 
 type PlayerState = {
   color: string,
-  actionType: string
+  actionType: string,
+  settlementPieces: CatanApiSettlementResponse,
+  roadPieces: CatanApiRoadsResponse
 }
 
 function CatanGameBoard() {
 
-  const [playerState, setPlayerState] = useState({color:"BLUE",actionType:"R"})
+  const [playerState, setPlayerState] = useState({
+    color:"BLUE",
+    actionType:"R",
+    settlementPieces:{},
+    roadPieces:{}
+  })
 
   const setRedPlayer = (): void => {setPlayerState({...playerState, color:"RED"})}
   const setBluePlayer = (): void => {setPlayerState({...playerState, color:"BLUE"})}
@@ -40,92 +45,85 @@ function CatanGameBoard() {
   const setWhitePlayer = (): void => {setPlayerState({...playerState, color:"WHITE"})}
   const setActionTypeSettlement = (): void => {setPlayerState({...playerState, actionType:"S"})}
   const setActionTypeRoad = (): void => {setPlayerState({...playerState, actionType:"R"})}
+  const setSettlementPieces = (response: CatanApiSettlementResponse): void => {setPlayerState({...playerState, settlementPieces: response})}
+  const setRoadPieces = (response: CatanApiRoadsResponse): void => {setPlayerState({...playerState, roadPieces: response})}
+
 
   let canvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
   let canvasCtxRef = React.useRef<CanvasRenderingContext2D | null>(null);
 
   useEffect(() => { 
-    catanFetchApi<CatanApiRoadsResponse>('/roads',{
-      method: 'GET'
-    }, (response) => {
-      if (canvasRef.current) {
-        canvasCtxRef.current = canvasRef.current.getContext('2d');
-        let ctx = canvasCtxRef.current; // Assigning to a temp variable
-
-        let colorResponse = [
-          {color: "red", response: response.red},
-          {color: "blue", response: response.blue},
-          {color: "yellow", response: response.yellow},
-          {color: "white", response: response.white},
-        ]
-        let width = 5
-        for(var playerPieces of colorResponse) {
-         let response = playerPieces.response
-         let color = playerPieces.color 
-
-          for(var road of response) {
-            let uiCoordinates = CoordinateTranslator.uiCoordinateMap(road)
-            ctx!.beginPath(); // Note the Non Null Assertion
-            ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
-            ctx!.lineTo(uiCoordinates.x1, uiCoordinates.y1);
-            ctx!.strokeStyle = color;
-            ctx!.lineWidth = width; 
-            ctx!.stroke();
-          }
-
-        }
-      }
-    })
-
-    catanFetchApi<CatanApiSettlementResponse>('/settlements', {
-      method: 'GET'
-    }, (response) => {
-      if (canvasRef.current) {
-        canvasCtxRef.current = canvasRef.current.getContext('2d');
-        let ctx = canvasCtxRef.current; // Assigning to a temp variable
-
-        let width = 15
-
-        let playerSettlements = [
-          {color: "red", response: response.red},
-          {color: "blue", response: response.blue},
-          {color: "yellow", response: response.yellow},
-          {color: "white", response: response.white},
-        ]
-
-        for (var currentPlayer of playerSettlements) {
-          for(var settlement of currentPlayer.response) {
-            let uiCoordinates = CoordinateTranslator.uiCoordinateMapSingle({x: settlement.x, y: settlement.y} as CatanCoordinate)
-            ctx!.beginPath(); // Note the Non Null Assertion
-            ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
-            ctx!.lineTo(uiCoordinates.x, uiCoordinates.y+width);
-            ctx!.strokeStyle = currentPlayer.color;
-            ctx!.lineWidth = width; 
-            ctx!.stroke();
-          }
-        }
-      }
-    })
-
-    // Second, Initialize Canvas and print
     if (canvasRef.current) {
       canvasCtxRef.current = canvasRef.current.getContext('2d');
       let ctx = canvasCtxRef.current; // Assigning to a temp variable
-      let color = 'black';
-      let width = 1;
 
-      for (var road of RoadsToDraw.roadsCoordinates()/*.filter(rd => rd.y == 0)*/) {
-        let uiCoordinates = CoordinateTranslator.uiCoordinateMap({x: road.x, y: road.y, x1: road.x1 , y1: road.y1});
+      catanFetchApi<CatanApiRoadsResponse>('/roads',{
+        method: 'GET'
+      }, (response) => {
+          setRoadPieces(response)
+          let colorResponse = [
+            {color: "red", response: response.red},
+            {color: "blue", response: response.blue},
+            {color: "yellow", response: response.yellow},
+            {color: "white", response: response.white},
+          ]
+          let width = 5
+          for(var playerPieces of colorResponse) {
+          let response = playerPieces.response
+          let color = playerPieces.color 
 
-        ctx!.beginPath(); // Note the Non Null Assertion
-        ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
-        ctx!.lineTo(uiCoordinates.x1, uiCoordinates.y1);
-        ctx!.strokeStyle = color;
-        ctx!.lineWidth = width; 
-        ctx!.stroke();
-      }
-      console.log("Done painting board.")
+            for(var road of response) {
+              let uiCoordinates = CoordinateTranslator.uiCoordinateMap(road)
+              ctx!.beginPath(); // Note the Non Null Assertion
+              ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
+              ctx!.lineTo(uiCoordinates.x1, uiCoordinates.y1);
+              ctx!.strokeStyle = color;
+              ctx!.lineWidth = width; 
+              ctx!.stroke();
+            }
+          }
+      })
+
+      catanFetchApi<CatanApiSettlementResponse>('/settlements', {
+        method: 'GET'
+      }, (response) => {
+          setSettlementPieces(response)
+          let width = 15
+          let playerSettlements = [
+            {color: "red", response: response.red},
+            {color: "blue", response: response.blue},
+            {color: "yellow", response: response.yellow},
+            {color: "white", response: response.white},
+          ]
+
+          for (var currentPlayer of playerSettlements) {
+            for(var settlement of currentPlayer.response) {
+              let uiCoordinates = CoordinateTranslator.uiCoordinateMapSingle({x: settlement.x, y: settlement.y} as CatanCoordinate)
+              ctx!.beginPath(); // Note the Non Null Assertion
+              ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
+              ctx!.lineTo(uiCoordinates.x, uiCoordinates.y+width);
+              ctx!.strokeStyle = currentPlayer.color;
+              ctx!.lineWidth = width; 
+              ctx!.stroke();
+            }
+          }
+      })
+
+        let color = 'black';
+        let width = 1;
+
+        for (var road of RoadsToDraw.roadsCoordinates()/*.filter(rd => rd.y == 0)*/) {
+          let uiCoordinates = CoordinateTranslator.uiCoordinateMap({x: road.x, y: road.y, x1: road.x1 , y1: road.y1});
+
+          ctx!.beginPath(); // Note the Non Null Assertion
+          ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
+          ctx!.lineTo(uiCoordinates.x1, uiCoordinates.y1);
+          ctx!.strokeStyle = color;
+          ctx!.lineWidth = width; 
+          ctx!.stroke();
+        }
+        console.log("Done painting board.")
     }
   }, []);
 
