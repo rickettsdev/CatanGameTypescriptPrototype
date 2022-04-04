@@ -1,5 +1,5 @@
 import React from 'react';
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import CoordinateTranslator from './helpers/CoordinateTranslator'
 import RoadsToDraw from './helpers/RoadsToDraw'
@@ -25,12 +25,16 @@ function App() {
   );
 }
 
+type PlayerState = {
+  color: string,
+}
+
 function CatanGameBoard() {
 
-  var roadType = "BLUE"
+  const [playerState, setPlayerState] = useState({color:"BLUE"})
 
-  const setRedRoad = (): void => {roadType = "RED"}
-  const setBlueRoad = (): void => {roadType = "BLUE"}
+  const setRedRoad = (): void => {setPlayerState({color:"RED"})}
+  const setBlueRoad = (): void => {setPlayerState({color:"BLUE"})}
 
   let canvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
@@ -152,7 +156,7 @@ function CatanGameBoard() {
               y: closestRoad.modelCoordinate.y, 
               x1: closestRoad.modelCoordinate.x1, 
               y1: closestRoad.modelCoordinate.y1
-            } as LineToDraw, roadType, (response) => {
+            } as LineToDraw, playerState.color, (response) => {
               console.log(response)
           })
 
@@ -162,7 +166,7 @@ function CatanGameBoard() {
             ctx!.beginPath(); // Note the Non Null Assertion
             ctx!.moveTo(closestRoad.uiCoordinates.x, closestRoad.uiCoordinates.y);
             ctx!.lineTo(closestRoad.uiCoordinates.x1, closestRoad.uiCoordinates.y1);
-            ctx!.strokeStyle = roadType.toLowerCase();
+            ctx!.strokeStyle = playerState.color.toLowerCase();
             ctx!.lineWidth = 7;
             ctx!.stroke();
 

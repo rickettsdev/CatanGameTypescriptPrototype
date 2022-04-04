@@ -1,7 +1,7 @@
 import { CatanGameColor } from "../models/CatanGameColor"
 import LineToDraw from "../models/LineToDraw"
 
-let host = "192.168.1.19"
+let host = "localhost"
 
 export async function catanFetchApi<T>(path: string, requestInit: RequestInit,
    completion: { (response: T): void}): Promise<T> {
