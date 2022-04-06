@@ -11,6 +11,7 @@ import CatanCoordinate from './models/CatanCoordinate'
 import CatanApiRoadsResponse from './api/models/CatanApiRoadsResponse'
 import CatanApiSettlementResponse from './api/models/CatanApiSettlementResponse'
 import { catanFetchApi, catanAddSettlementAPI, catanAddRoadAPI } from './api/CatanApiManager';
+import CatanSettlementModel from './api/models/CatanSettlementModel';
 
 import './App.css';
 import LineToDraw from './models/LineToDraw';
@@ -31,47 +32,75 @@ interface CatanApiRoadsResponseStateDifference {
 
 interface CatanApiSettlementResponseStateDifference {
   color: string,
-  response: Array<CatanCoordinate>
+  response: Array<CatanSettlementModel>
 }
 
 type PlayerState = {
   color: string,
   actionType: string,
   settlementPieces: CatanApiSettlementResponse,
-  roadPieces: CatanApiRoadsResponse
+  roadPieces: Array<CatanApiRoadsResponseStateDifference>,
+  initialBoardDrawn: boolean
 }
 
 function CatanGameBoard() {
 
   let updateSpeed = 5000//ms
 
-  const [playerState, setPlayerState] = useState({
+  const [playerState, setPlayerState] = useState<PlayerState>({
     color:"BLUE",
     actionType:"R",
-    settlementPieces:{red: [] as Array<CatanCoordinate>, blue: [] as Array<CatanCoordinate>, yellow: [] as Array<CatanCoordinate>, white: [] as Array<CatanCoordinate>},
-    roadPieces:{red: [] as Array<LineToDraw>, blue: [] as Array<LineToDraw>, yellow: [] as Array<LineToDraw>, white: [] as Array<LineToDraw>}
+    settlementPieces:{red: [] as Array<CatanSettlementModel>, blue: [] as Array<CatanSettlementModel>, yellow: [] as Array<CatanSettlementModel>, white: [] as Array<CatanSettlementModel>},
+    roadPieces:[
+      {color: "red", response: [] as Array<LineToDraw>},
+      {color: "blue", response: [] as Array<LineToDraw>},
+      {color: "yellow", response: [] as Array<LineToDraw>},
+      {color: "white", response: [] as Array<LineToDraw>}
+    ],
+    initialBoardDrawn: false
   })
 
+  const setBoardDrawn = (): void => setPlayerState({...playerState, initialBoardDrawn: true})
   const setRedPlayer = (): void => {setPlayerState({...playerState, color:"RED"})}
   const setBluePlayer = (): void => {setPlayerState({...playerState, color:"BLUE"})}
-  const setYellowPlayer = (): void => {setPlayerState({...playerState, color:"YELLOW"})}
+  const setYellowPlayer = (): void => {
+    setPlayerState({...playerState, color:"YELLOW"})
+    console.log(`yellow clicked: Player state: ${JSON.stringify(playerState)}`)
+  }
   const setWhitePlayer = (): void => {setPlayerState({...playerState, color:"WHITE"})}
   const setActionTypeSettlement = (): void => {setPlayerState({...playerState, actionType:"S"})}
   const setActionTypeRoad = (): void => {setPlayerState({...playerState, actionType:"R"})}
-  const setSettlementPieces = (response: CatanApiSettlementResponse): void => {setPlayerState({...playerState, settlementPieces: response})}
-  const setRoadPieces = (response: CatanApiRoadsResponse): void => {setPlayerState({...playerState, roadPieces: response})}
 
   const setRoadPiecesReturnDiff = (response: CatanApiRoadsResponse): Array<CatanApiRoadsResponseStateDifference> => {
     
     let currentState = playerState.roadPieces
     let stateDifference: Array<CatanApiRoadsResponseStateDifference> = [
-      {color: "red", response: response.red.filter(road => !currentState.red.includes(road))},
-      {color: "blue", response: response.blue.filter(road => !currentState.blue.includes(road))},
-      {color: "yellow", response: response.yellow.filter(road => !currentState.yellow.includes(road))},
-      {color: "white", response: response.white.filter(road => !currentState.white.includes(road))},
+      {color: "red", response: response.red.filter(road => currentState.find(road2 => road2.color === "red"))},
+      {color: "blue", response: response.blue.filter(road => currentState.find(road => road.color === "blue"))},
+      {color: "yellow", response: response.yellow.filter(road => currentState.find(road => road.color === "yellow"))},
+      {color: "white", response: response.white.filter(road => currentState.find(road => road.color === "white"))},
     ]
 
-    setPlayerState({...playerState, roadPieces: response})
+    let newState: Array<CatanApiRoadsResponseStateDifference> = [
+      {color: "red", response: response.red},
+      {color: "blue", response: response.blue},
+      {color: "yellow", response: response.yellow},
+      {color: "white", response: response.white},
+    ]
+
+    console.log(`road response: ${JSON.stringify(response)}`)
+
+    console.log(`state difference: ${JSON.stringify(stateDifference)}`)
+
+    console.log(`Player State: ${JSON.stringify(playerState)}`)
+
+    let newPlayerState = {...playerState, roadPieces: newState}
+
+    console.log(`new player state: ${JSON.stringify(newPlayerState)}`)
+
+    setPlayerState(newPlayerState)
+
+    console.log(`Player State After setPlayerState: ${JSON.stringify(playerState)}`)
 
     return stateDifference
   }
@@ -86,7 +115,11 @@ function CatanGameBoard() {
       {color: "white", response: response.white.filter(settlement => !currentState.white.includes(settlement))},
     ]
 
+    console.log(`settlement Pieces Return Diff player state: ${JSON.stringify(playerState)}`)
+
     setPlayerState({...playerState, settlementPieces: response})
+
+    console.log(`2nd settlement Pieces Return Diff player state: ${JSON.stringify(playerState)}`)
 
     return stateDifference
   }
@@ -99,30 +132,27 @@ function CatanGameBoard() {
   const timerRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => { 
+    console.log(`player state: ${JSON.stringify(playerState)}`)
     if (canvasRef.current) {
       canvasCtxRef.current = canvasRef.current.getContext('2d');
       let ctx = canvasCtxRef.current; // Assigning to a temp variable
+      if(!playerState.initialBoardDrawn){
+        let color = 'black';
+        let width = 1;
 
-      catanFetchApi<CatanApiRoadsResponse>('/roads',{
-        method: 'GET'
-      }, (response) => {
-          let colorResponse = setRoadPiecesReturnDiff(response)
-          let width = 5
-          for(var playerPieces of colorResponse) {
-          let response = playerPieces.response
-          let color = playerPieces.color 
+        for (var road of RoadsToDraw.roadsCoordinates()/*.filter(rd => rd.y == 0)*/) {
+          let uiCoordinates = CoordinateTranslator.uiCoordinateMap({x: road.x, y: road.y, x1: road.x1 , y1: road.y1});
 
-            for(var road of response) {
-              let uiCoordinates = CoordinateTranslator.uiCoordinateMap(road)
-              ctx!.beginPath(); // Note the Non Null Assertion
-              ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
-              ctx!.lineTo(uiCoordinates.x1, uiCoordinates.y1);
-              ctx!.strokeStyle = color;
-              ctx!.lineWidth = width; 
-              ctx!.stroke();
-            }
-          }
-      })
+          ctx!.beginPath(); // Note the Non Null Assertion
+          ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
+          ctx!.lineTo(uiCoordinates.x1, uiCoordinates.y1);
+          ctx!.strokeStyle = color;
+          ctx!.lineWidth = width; 
+          ctx!.stroke();
+        }
+        console.log("Done painting board.")
+        setBoardDrawn()
+      }
 
       timerRef.current = setInterval(() => {
         catanFetchApi<CatanApiRoadsResponse>('/roads',{
@@ -145,28 +175,6 @@ function CatanGameBoard() {
               }
             }
         })
-    }, updateSpeed);
-
-      catanFetchApi<CatanApiSettlementResponse>('/settlements', {
-        method: 'GET'
-      }, (response) => {
-          let playerSettlements = setSettlementPiecesReturnDiff(response)
-          let width = 15
-
-          for (var currentPlayer of playerSettlements) {
-            for(var settlement of currentPlayer.response) {
-              let uiCoordinates = CoordinateTranslator.uiCoordinateMapSingle({x: settlement.x, y: settlement.y} as CatanCoordinate)
-              ctx!.beginPath(); // Note the Non Null Assertion
-              ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
-              ctx!.lineTo(uiCoordinates.x, uiCoordinates.y+width);
-              ctx!.strokeStyle = currentPlayer.color;
-              ctx!.lineWidth = width; 
-              ctx!.stroke();
-            }
-          }
-      })
-
-      timerRef.current = setInterval(() => {
         catanFetchApi<CatanApiSettlementResponse>('/settlements', {
           method: 'GET'
         }, (response) => {
@@ -186,23 +194,12 @@ function CatanGameBoard() {
             }
         })
     }, updateSpeed);
-
-        let color = 'black';
-        let width = 1;
-
-        for (var road of RoadsToDraw.roadsCoordinates()/*.filter(rd => rd.y == 0)*/) {
-          let uiCoordinates = CoordinateTranslator.uiCoordinateMap({x: road.x, y: road.y, x1: road.x1 , y1: road.y1});
-
-          ctx!.beginPath(); // Note the Non Null Assertion
-          ctx!.moveTo(uiCoordinates.x, uiCoordinates.y);
-          ctx!.lineTo(uiCoordinates.x1, uiCoordinates.y1);
-          ctx!.strokeStyle = color;
-          ctx!.lineWidth = width; 
-          ctx!.stroke();
-        }
-        console.log("Done painting board.")
     }
-  }, []);
+    return () => {
+      console.log("test here")
+      clearInterval(timerRef.current!);
+    };
+  }, [timerRef, setRoadPiecesReturnDiff]);
 
   const randomQuotes: string[] = [
     "Before you judge a man, walk a mile in his shoes. After that who cares?... He’s a mile away and you’ve got his shoes!",
