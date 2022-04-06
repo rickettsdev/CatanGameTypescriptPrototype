@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from 'react'
 import CoordinateTranslator from './helpers/CoordinateTranslator'
 import RoadsToDraw from './helpers/RoadsToDraw'
 
-import QuoteApp from './components/QuoteApp'
-
 import CatanCoordinate from './models/CatanCoordinate'
 
 import CatanApiRoadsResponse from './api/models/CatanApiRoadsResponse'
@@ -20,7 +18,7 @@ function App() {
   return (
     <div>
       <CatanGameBoard />
-      <h3>CatanBoard</h3>
+      <h3>The game is called 'Batan'</h3>
     </div>
   );
 }
@@ -200,16 +198,6 @@ function CatanGameBoard() {
       clearInterval(timerRef.current!);
     };
   }, [timerRef, setRoadPiecesReturnDiff]);
-
-  const randomQuotes: string[] = [
-    "Before you judge a man, walk a mile in his shoes. After that who cares?... He’s a mile away and you’ve got his shoes!",
-    "Better to remain silent and be thought a fool than to speak out and remove all doubt.",
-    "The best thing about the future is that it comes one day at a time.",
-    "The only mystery in life is why the kamikaze pilots wore helmets.",
-    "Light travels faster than sound. This is why some people appear bright until you hear them speak.",
-    "The difference between stupidity and genius is that genius has its limits"
-  ]
-
   return (
     <div>
       <canvas
@@ -271,7 +259,6 @@ function CatanGameBoard() {
        <button onClick={setActionTypeRoad}>Build Roads</button>
        <button onClick={setActionTypeSettlement}>Build Settlements</button>
        <h3>Current Color: {playerState.color}, Current Action: {playerState.actionType}</h3>
-      <QuoteApp quotes={randomQuotes}/>
     </div>
   );
 }
