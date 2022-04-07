@@ -11,6 +11,7 @@ export default abstract class CoordinateTranslator {
     private static yCoordinateMultiplier = 32;
     private static leftSideMargin = 40;
 	private static resourceTileSlotXOffset = CoordinateTranslator.leftSideMargin / 2
+	private static diceRollTileSlotXOffset = CoordinateTranslator.leftSideMargin
 
     public static uiCoordinateMap(coordinates: LineToDraw): LineToDraw {
     	const firstNewCoordinate = 
@@ -49,6 +50,12 @@ export default abstract class CoordinateTranslator {
 	public static provideUICoordinateForResourceTileSlot(coordinate: CatanCoordinate): CatanCoordinate {
 		let uiCoordinate = CoordinateTranslator.mapHexagonPointCoordinate({x: coordinate.x, y: coordinate.y*2+1})
 		let adjustedUICoordinate = {x: uiCoordinate.x + CoordinateTranslator.resourceTileSlotXOffset, y: uiCoordinate.y}
+		return adjustedUICoordinate
+	}
+
+	public static provideUICoordinateForDiceRollTileSlot(coordinate: CatanCoordinate): CatanCoordinate {
+		let uiCoordinate = CoordinateTranslator.mapHexagonPointCoordinate({x: coordinate.x, y: coordinate.y*2+2})
+		let adjustedUICoordinate = {x: uiCoordinate.x + CoordinateTranslator.diceRollTileSlotXOffset, y: uiCoordinate.y}
 		return adjustedUICoordinate
 	}
 

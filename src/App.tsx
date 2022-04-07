@@ -44,7 +44,7 @@ type PlayerState = {
 
 function CatanGameBoard() {
 
-  let updateSpeed = 15000//ms
+  let updateSpeed = 2000//ms
 
   const [playerState, setPlayerState] = useState<PlayerState>({
     color:"BLUE",
@@ -131,34 +131,23 @@ function CatanGameBoard() {
 
       // Drawing the board for first time.
       if(!playerState.initialBoardDrawn) {
+        ctx!.fillText('Batan: The Board Game', 10, 10);
 
+        //Get Resources Tiles
         catanFetchApi<CatanResourceTileInfoResponse>('/resourceTiles',{
           method: 'GET'
         }, (response) => {
           for (var resource of response.resources) {
-            console.log(`resources: ${JSON.stringify(resource)}`)
             let resourceCoordinate: CatanCoordinate = {x: +resource.x, y: +resource.y}
             let uiResourceCoordinate = CoordinateTranslator.provideUICoordinateForResourceTileSlot(resourceCoordinate)
-            ctx!.font = '12px serif';
+            let uiDiceRollCoordinate = CoordinateTranslator.provideUICoordinateForDiceRollTileSlot(resourceCoordinate)
+
+            ctx!.font = '13px serif';
             ctx!.fillText(resource.resource, uiResourceCoordinate.x, uiResourceCoordinate.y)
+            ctx!.font = '12px serif';
+            ctx!.strokeText(resource.diceRoll, uiDiceRollCoordinate.x, uiDiceRollCoordinate.y)
           }
         })
-
-        let test = CoordinateTranslator.provideUICoordinateForResourceTileSlot({x: 2, y: 4})
-
-        // ctx!.font = '12px serif';
-        // ctx!.fillText("Resource", test.x, test.y)
-        ctx!.fillText('Batan: The Board Game', 10, 10);
-
-        //Get Resources Tiles
-        // var allPossibleCoordinates: Array<CatanCoordinate> = RoadsToDraw.allPossibleCoordinates()
-
-        // allPossibleCoordinates.sort((a, b) => {
-        //   return a.y - b.y
-        // }).forEach(value => {
-        //   console.log(`coordinate: ${JSON.stringify(value)}`)
-        // })
-
         //End get resource tiles
 
         let color = 'black';
