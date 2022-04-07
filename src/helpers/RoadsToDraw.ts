@@ -1,6 +1,9 @@
+import CatanCoordinate from "../models/CatanCoordinate";
 import LineToDraw from "../models/LineToDraw";
 
 export default abstract class RoadsToDraw {
+
+	private static allPossibleCoordinatesSet = new Array<CatanCoordinate>()
 	public static roadsCoordinates(): Array<LineToDraw> {
 		const r =  [
 			{
@@ -366,5 +369,38 @@ export default abstract class RoadsToDraw {
 			}
 		] as Array<LineToDraw>;
 		return r;
+	}
+
+	public static allPossibleCoordinates(): Array<CatanCoordinate> {
+		if (this.allPossibleCoordinatesSet.length != 0) {
+			console.log("Retrieving cached coordinates")
+			return this.allPossibleCoordinatesSet
+		}
+
+		let allRoads = RoadsToDraw.roadsCoordinates()
+
+		var allCoordinatesSet: Set<string> = new Set<string>()
+
+		for (var road of allRoads) {
+			let firstCoordinate: CatanCoordinate = {x: road.x, y: road.y}
+			let secondCoordinate: CatanCoordinate = {x: road.x1, y: road.y1}
+
+			allCoordinatesSet.add(`${firstCoordinate.x}-${firstCoordinate.y}`)
+			allCoordinatesSet.add(`${secondCoordinate.x}-${secondCoordinate.y}`)
+		}
+
+		// This is a stinky hack due to me not figuring out how to have Set<interface> values be unique.
+		let coordinatesList: Array<CatanCoordinate> = Array.from(allCoordinatesSet.values()).map(value => {
+			let coordArray = value.split('-', 2).map(value => {
+				return +value
+			})
+			let x = coordArray[0]
+			let y = coordArray[1]
+			return {x: x, y: y}
+		})
+
+		this.allPossibleCoordinatesSet = coordinatesList
+
+		return coordinatesList
 	}
 }

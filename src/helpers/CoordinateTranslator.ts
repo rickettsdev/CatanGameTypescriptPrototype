@@ -10,6 +10,7 @@ export default abstract class CoordinateTranslator {
     private static xCoordinateMultiplier = 85;
     private static yCoordinateMultiplier = 32;
     private static leftSideMargin = 40;
+	private static resourceTileSlotXOffset = CoordinateTranslator.leftSideMargin / 2
 
     public static uiCoordinateMap(coordinates: LineToDraw): LineToDraw {
     	const firstNewCoordinate = 
@@ -43,6 +44,12 @@ export default abstract class CoordinateTranslator {
     	let closestCoordinateUIMapped = CoordinateTranslator.mapHexagonPointCoordinate(closestCoordinate)
 
 		return {uiCoordinate: closestCoordinateUIMapped, modelCoordinate: closestCoordinate}
+	}
+
+	public static provideUICoordinateForResourceTileSlot(coordinate: CatanCoordinate): CatanCoordinate {
+		let uiCoordinate = CoordinateTranslator.mapHexagonPointCoordinate({x: coordinate.x, y: coordinate.y*2+1})
+		let adjustedUICoordinate = {x: uiCoordinate.x + CoordinateTranslator.resourceTileSlotXOffset, y: uiCoordinate.y}
+		return adjustedUICoordinate
 	}
 
     public static closestRoad(uiCoordinate: CatanCoordinate): CatanGameRoadComposite {

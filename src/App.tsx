@@ -37,24 +37,25 @@ type PlayerState = {
   color: string,
   actionType: string,
   settlementPieces: CatanApiSettlementResponse,
-  roadPieces: Array<CatanApiRoadsResponseStateDifference>,
+  roadPieces: CatanApiRoadsResponse,
   initialBoardDrawn: boolean
 }
 
 function CatanGameBoard() {
 
-  let updateSpeed = 5000//ms
+  let updateSpeed = 15000//ms
 
   const [playerState, setPlayerState] = useState<PlayerState>({
     color:"BLUE",
     actionType:"R",
     settlementPieces:{red: [] as Array<CatanSettlementModel>, blue: [] as Array<CatanSettlementModel>, yellow: [] as Array<CatanSettlementModel>, white: [] as Array<CatanSettlementModel>},
-    roadPieces:[
-      {color: "red", response: [] as Array<LineToDraw>},
-      {color: "blue", response: [] as Array<LineToDraw>},
-      {color: "yellow", response: [] as Array<LineToDraw>},
-      {color: "white", response: [] as Array<LineToDraw>}
-    ],
+    roadPieces:
+      {
+        red: [] as Array<LineToDraw>,
+        blue: [] as Array<LineToDraw>,
+        yellow: [] as Array<LineToDraw>,
+        white: [] as Array<LineToDraw>
+      },
     initialBoardDrawn: false
   })
 
@@ -70,35 +71,27 @@ function CatanGameBoard() {
   const setActionTypeRoad = (): void => {setPlayerState({...playerState, actionType:"R"})}
 
   const setRoadPiecesReturnDiff = (response: CatanApiRoadsResponse): Array<CatanApiRoadsResponseStateDifference> => {
-    
-    let currentState = playerState.roadPieces
+    // TODO: State difference doesn't work. Setting state doesn't either.
     let stateDifference: Array<CatanApiRoadsResponseStateDifference> = [
-      {color: "red", response: response.red.filter(road => currentState.find(road2 => road2.color === "red"))},
-      {color: "blue", response: response.blue.filter(road => currentState.find(road => road.color === "blue"))},
-      {color: "yellow", response: response.yellow.filter(road => currentState.find(road => road.color === "yellow"))},
-      {color: "white", response: response.white.filter(road => currentState.find(road => road.color === "white"))},
-    ]
-
-    let newState: Array<CatanApiRoadsResponseStateDifference> = [
-      {color: "red", response: response.red},
-      {color: "blue", response: response.blue},
-      {color: "yellow", response: response.yellow},
-      {color: "white", response: response.white},
+      {color: "red", response: response.red.filter(road => !playerState.roadPieces.red.includes(road))},
+      {color: "blue", response: response.blue.filter(road => !playerState.roadPieces.blue.includes(road))},
+      {color: "yellow", response: response.yellow.filter(road => !playerState.roadPieces.yellow.includes(road))},
+      {color: "white", response: response.white.filter(road => !playerState.roadPieces.white.includes(road))},
     ]
 
     console.log(`road response: ${JSON.stringify(response)}`)
 
     console.log(`state difference: ${JSON.stringify(stateDifference)}`)
 
-    console.log(`Player State: ${JSON.stringify(playerState)}`)
+    console.log(`Player State: ${JSON.stringify(playerState.roadPieces)}`)
 
-    let newPlayerState = {...playerState, roadPieces: newState}
+    let newPlayerState: PlayerState = {...playerState, roadPieces: response}
 
     console.log(`new player state: ${JSON.stringify(newPlayerState)}`)
 
     setPlayerState(newPlayerState)
 
-    console.log(`Player State After setPlayerState: ${JSON.stringify(playerState)}`)
+    console.log(`Player State After setPlayerState: ${JSON.stringify(playerState.roadPieces)}`)
 
     return stateDifference
   }
@@ -113,11 +106,11 @@ function CatanGameBoard() {
       {color: "white", response: response.white.filter(settlement => !currentState.white.includes(settlement))},
     ]
 
-    console.log(`settlement Pieces Return Diff player state: ${JSON.stringify(playerState)}`)
+    console.log(`settlement Pieces Return Diff player state: ${JSON.stringify(playerState.settlementPieces)}`)
 
     setPlayerState({...playerState, settlementPieces: response})
 
-    console.log(`2nd settlement Pieces Return Diff player state: ${JSON.stringify(playerState)}`)
+    console.log(`2nd settlement Pieces Return Diff player state: ${JSON.stringify(playerState.settlementPieces)}`)
 
     return stateDifference
   }
@@ -134,7 +127,27 @@ function CatanGameBoard() {
     if (canvasRef.current) {
       canvasCtxRef.current = canvasRef.current.getContext('2d');
       let ctx = canvasCtxRef.current; // Assigning to a temp variable
-      if(!playerState.initialBoardDrawn){
+
+      // Drawing the board for first time.
+      if(!playerState.initialBoardDrawn) {
+
+        let test = CoordinateTranslator.provideUICoordinateForResourceTileSlot({x: 2, y: 4})
+
+        ctx!.font = '12px serif';
+        ctx!.fillText("Resource", test.x, test.y)
+        ctx!.fillText('Batan: The Board Game', 10, 10);
+
+        //Get Resources Tiles
+        // var allPossibleCoordinates: Array<CatanCoordinate> = RoadsToDraw.allPossibleCoordinates()
+
+        // allPossibleCoordinates.sort((a, b) => {
+        //   return a.y - b.y
+        // }).forEach(value => {
+        //   console.log(`coordinate: ${JSON.stringify(value)}`)
+        // })
+
+        //End get resource tiles
+
         let color = 'black';
         let width = 1;
 
@@ -151,6 +164,7 @@ function CatanGameBoard() {
         console.log("Done painting board.")
         setBoardDrawn()
       }
+      // End draw board
 
       timerRef.current = setInterval(() => {
         catanFetchApi<CatanApiRoadsResponse>('/roads',{
@@ -194,10 +208,10 @@ function CatanGameBoard() {
     }, updateSpeed);
     }
     return () => {
-      console.log("test here")
+      console.log("clearing time interval")
       clearInterval(timerRef.current!);
     };
-  }, [timerRef, setRoadPiecesReturnDiff]);
+  }, [timerRef, setRoadPiecesReturnDiff, setBoardDrawn]);
   return (
     <div>
       <canvas
