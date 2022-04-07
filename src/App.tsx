@@ -13,6 +13,7 @@ import CatanSettlementModel from './api/models/CatanSettlementModel';
 
 import './App.css';
 import LineToDraw from './models/LineToDraw';
+import CatanResourceTileInfoResponse from './api/models/CatanResourceTileInfoResponse';
 
 function App() {
   return (
@@ -131,10 +132,22 @@ function CatanGameBoard() {
       // Drawing the board for first time.
       if(!playerState.initialBoardDrawn) {
 
+        catanFetchApi<CatanResourceTileInfoResponse>('/resourceTiles',{
+          method: 'GET'
+        }, (response) => {
+          for (var resource of response.resources) {
+            console.log(`resources: ${JSON.stringify(resource)}`)
+            let resourceCoordinate: CatanCoordinate = {x: +resource.x, y: +resource.y}
+            let uiResourceCoordinate = CoordinateTranslator.provideUICoordinateForResourceTileSlot(resourceCoordinate)
+            ctx!.font = '12px serif';
+            ctx!.fillText(resource.resource, uiResourceCoordinate.x, uiResourceCoordinate.y)
+          }
+        })
+
         let test = CoordinateTranslator.provideUICoordinateForResourceTileSlot({x: 2, y: 4})
 
-        ctx!.font = '12px serif';
-        ctx!.fillText("Resource", test.x, test.y)
+        // ctx!.font = '12px serif';
+        // ctx!.fillText("Resource", test.x, test.y)
         ctx!.fillText('Batan: The Board Game', 10, 10);
 
         //Get Resources Tiles
