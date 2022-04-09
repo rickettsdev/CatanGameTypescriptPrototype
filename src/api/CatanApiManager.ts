@@ -12,7 +12,9 @@ export async function catanFetchApi<T>(path: string, requestInit: RequestInit,
       let responseModel = JSON.parse(response) as T
       completion(responseModel)
       console.log(responseModel)
-      return responseModel
+      return new Promise<T>((resolve, reject) => {
+        resolve(responseModel)
+      })
 }
 
 export async function catanAddRoadAPI(lineToDraw: LineToDraw, color: string): Promise<boolean> {

@@ -14,6 +14,7 @@ import CatanSettlementModel from './api/models/CatanSettlementModel';
 import './App.css';
 import LineToDraw from './models/LineToDraw';
 import CatanResourceTileInfoResponse from './api/models/CatanResourceTileInfoResponse';
+import CatanDiceRollResponse from './api/models/CatanDiceRollResponse';
 
 function App() {
   return (
@@ -39,11 +40,13 @@ type PlayerState = {
   actionType: string,
   settlementPieces: CatanApiSettlementResponse,
   roadPieces: CatanApiRoadsResponse,
-  initialBoardDrawn: boolean
+  initialBoardDrawn: boolean,
+  mostRecentDiceRoll: number
 }
 
 function CatanGameBoard() {
 
+  // Yes, I understand short polling is garbage for scalability and cost
   let updateSpeed = 2000//ms
 
   const [playerState, setPlayerState] = useState<PlayerState>({
@@ -57,9 +60,15 @@ function CatanGameBoard() {
         yellow: [] as Array<LineToDraw>,
         white: [] as Array<LineToDraw>
       },
-    initialBoardDrawn: false
+    initialBoardDrawn: false,
+    mostRecentDiceRoll: 0
   })
 
+  const rollDice = (): void => {
+    catanFetchApi<CatanDiceRollResponse>('/rollDice', {
+      method: 'GET'
+    },() => {}).then(response => setMostRecentDiceRoll(response.diceRoll))
+  }
   const setBoardDrawn = (): void => setPlayerState({...playerState, initialBoardDrawn: true})
   const setRedPlayer = (): void => {setPlayerState({...playerState, color:"RED"})}
   const setBluePlayer = (): void => {setPlayerState({...playerState, color:"BLUE"})}
@@ -70,6 +79,7 @@ function CatanGameBoard() {
   const setWhitePlayer = (): void => {setPlayerState({...playerState, color:"WHITE"})}
   const setActionTypeSettlement = (): void => {setPlayerState({...playerState, actionType:"S"})}
   const setActionTypeRoad = (): void => {setPlayerState({...playerState, actionType:"R"})}
+  const setMostRecentDiceRoll = (diceRoll: number): void => {setPlayerState({...playerState, mostRecentDiceRoll: diceRoll})}
 
   const setRoadPiecesReturnDiff = (response: CatanApiRoadsResponse): Array<CatanApiRoadsResponseStateDifference> => {
     // TODO: State difference doesn't work. Setting state doesn't either.
@@ -274,7 +284,8 @@ function CatanGameBoard() {
        <button onClick={setWhitePlayer}>White Player</button>
        <button onClick={setActionTypeRoad}>Build Roads</button>
        <button onClick={setActionTypeSettlement}>Build Settlements</button>
-       <h3>Current Color: {playerState.color}, Current Action: {playerState.actionType}</h3>
+       <button onClick={rollDice}>Roll Dice</button>
+       <h3>Current Color: {playerState.color}, Current Action: {playerState.actionType}, Most Recent Roll: {playerState.mostRecentDiceRoll}</h3>
     </div>
   );
 }
