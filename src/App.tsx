@@ -15,6 +15,7 @@ import './App.css';
 import LineToDraw from './models/LineToDraw';
 import CatanResourceTileInfoResponse from './api/models/CatanResourceTileInfoResponse';
 import CatanDiceRollResponse from './api/models/CatanDiceRollResponse';
+import CatanPlayerResourceCardsResponse from './api/models/CatanPlayerResourceCardsResponse';
 
 function App() {
   return (
@@ -41,7 +42,8 @@ type PlayerState = {
   settlementPieces: CatanApiSettlementResponse,
   roadPieces: CatanApiRoadsResponse,
   initialBoardDrawn: boolean,
-  mostRecentDiceRoll: number
+  mostRecentDiceRoll: number,
+  playerCards: CatanPlayerResourceCardsResponse
 }
 
 function CatanGameBoard() {
@@ -61,7 +63,13 @@ function CatanGameBoard() {
         white: [] as Array<LineToDraw>
       },
     initialBoardDrawn: false,
-    mostRecentDiceRoll: 0
+    mostRecentDiceRoll: 0,
+    playerCards: {
+      red: [],
+      blue: [],
+      yellow: [],
+      white: []
+    }
   })
 
   const rollDice = (): void => {
@@ -69,6 +77,13 @@ function CatanGameBoard() {
       method: 'GET'
     },() => {}).then(response => setMostRecentDiceRoll(response.diceRoll))
   }
+
+  const updatePlayerResourceCards = (): void => {
+    catanFetchApi<CatanPlayerResourceCardsResponse>('/playerResources', {
+      method: 'GET'
+    }, () => {}).then(response => setPlayerResourceCards(response))
+  }
+
   const setBoardDrawn = (): void => setPlayerState({...playerState, initialBoardDrawn: true})
   const setRedPlayer = (): void => {setPlayerState({...playerState, color:"RED"})}
   const setBluePlayer = (): void => {setPlayerState({...playerState, color:"BLUE"})}
@@ -80,6 +95,7 @@ function CatanGameBoard() {
   const setActionTypeSettlement = (): void => {setPlayerState({...playerState, actionType:"S"})}
   const setActionTypeRoad = (): void => {setPlayerState({...playerState, actionType:"R"})}
   const setMostRecentDiceRoll = (diceRoll: number): void => {setPlayerState({...playerState, mostRecentDiceRoll: diceRoll})}
+  const setPlayerResourceCards = (playerCards: CatanPlayerResourceCardsResponse): void => setPlayerState({...playerState, playerCards: playerCards})
 
   const setRoadPiecesReturnDiff = (response: CatanApiRoadsResponse): Array<CatanApiRoadsResponseStateDifference> => {
     // TODO: State difference doesn't work. Setting state doesn't either.
@@ -285,7 +301,10 @@ function CatanGameBoard() {
        <button onClick={setActionTypeRoad}>Build Roads</button>
        <button onClick={setActionTypeSettlement}>Build Settlements</button>
        <button onClick={rollDice}>Roll Dice</button>
+       <button onClick={updatePlayerResourceCards}>Update Player Resource Cards</button>
        <h3>Current Color: {playerState.color}, Current Action: {playerState.actionType}, Most Recent Roll: {playerState.mostRecentDiceRoll}</h3>
+       <h3>Current Player Resouce Cards: {JSON.stringify(playerState.playerCards)}</h3>
+
     </div>
   );
 }
