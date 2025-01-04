@@ -1,3 +1,11 @@
+# State of the board game
+
+![Screenshot 2025-01-04 at 5 37 51 AM](https://github.com/user-attachments/assets/b94f39cb-77c0-4eb0-8dea-dd21b6949afb)
+
+In order to get this running, you will need to start the [CatanKotlinSparkService](https://github.com/rickettsdev/CatanKotlinSparkService). After this, you can run this react project with the commands below. This should point to your localhost for the spark service's 4567 port.
+
+Currently, you can place board pieces and the server will handle whether it is a valid placement or not. Turns aren't enforced to better test out UI.
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
